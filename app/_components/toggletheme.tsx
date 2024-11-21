@@ -4,6 +4,7 @@ import { Switch } from "@/app/_components/ui/switch";
 import { Label } from "@/app/_components/ui/label";
 import { useEffect, useState } from "react";
 import { MoonIcon, SunIcon } from "lucide-react";
+import React from "react";
 
 export default function ThemeToggle() {
   const [isDarkMode, setIsDarkMode] = useState(false);

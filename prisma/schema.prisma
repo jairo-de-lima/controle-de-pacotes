@@ -1,0 +1,53 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id    String  @id @default(uuid()) // Usando UUID para o ID
+  email String  @unique
+  name  String?
+}
+
+model Company {
+  id       String     @id @default(uuid()) // Usando UUID para o ID
+  name     String     @unique
+  email    String     @unique
+  password String     // Armazene como hash para segurança
+  couriers Courier[]
+  deliveries Delivery[]
+
+  @@map("companies") // Nome opcional para a tabela no banco
+}
+
+model Courier {
+  id             String     @id @default(uuid()) // Usando UUID para o ID
+  name           String
+  pricePerPackage Float      // Valor por pacote definido manualmente
+  companyId      String
+  company        Company    @relation(fields: [companyId], references: [id])
+  deliveries     Delivery[]
+
+  @@map("couriers") // Nome opcional para a tabela no banco
+}
+
+model Delivery {
+  id           String     @id @default(uuid()) // Usando UUID para o ID
+  courierId    String
+  courier      Courier    @relation(fields: [courierId], references: [id])
+  date         DateTime   @default(now())
+  packages     Int
+  additionalFee Float      @default(0)
+  totalValue   Float       @default(0)
+  companyId    String
+  company      Company    @relation(fields: [companyId], references: [id])
+
+  @@map("deliveries") // Nome opcional para a tabela no banco
+}
