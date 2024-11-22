@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import AuthGuard from "../_components/AuthGuard";
 import {
   Card,
@@ -12,6 +13,7 @@ import { useSession } from "next-auth/react";
 
 export default function Home() {
   const { data: session } = useSession();
+  console.log(session);
 
   return (
     <AuthGuard>
@@ -19,7 +21,7 @@ export default function Home() {
         <Card>
           <CardHeader>
             <CardTitle>
-              Bem-vindo ao Dashboard, {session?.user?.email}!
+              Bem-vindo ao Dashboard, {session?.user?.name}!
             </CardTitle>
           </CardHeader>
           <CardContent>
