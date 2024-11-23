@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-// ajuste o caminho conforme necessário
 import bcrypt from "bcryptjs";
 import { prisma } from "../../_lib/prisma";
 

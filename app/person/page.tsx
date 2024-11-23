@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusCircle } from "lucide-react";
-import { Input } from "@/app/_components/ui/input";
+import { Input } from "../_components/ui/input";
 import {
   Form,
   FormControl,
@@ -16,8 +16,9 @@ import { z } from "zod";
 import { Button } from "../_components/ui/button";
 import { MoneyInput } from "./_components/money-input";
 import AuthGuard from "../_components/AuthGuard";
-import { CourierCRUD } from "../_config/prismaCrud";
 import { useSession } from "next-auth/react";
+import { createCourier } from "./_actions/courier";
+
 
 const PersonForm = () => {
   const { data: session } = useSession();
@@ -44,22 +45,17 @@ const PersonForm = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (!session?.user?.companyId) {
-      alert("Erro: Usuário não está associado a nenhuma empresa.");
-      console.log(session);
-      return;
-    }
-
     try {
-      await CourierCRUD.create({
+      
+      const response = await createCourier({
         ...values,
-        companyId: session.user.companyId, // Vincula ao companyId do usuário logado
+        companyId: session?.user?.id || "", // Passa o ID da empresa
       });
-      alert("Entregador cadastrado com sucesso!");
+      alert(response.message);
       form.reset();
     } catch (error) {
-      console.error("Erro ao cadastrar entregador:", error);
-      alert("Erro ao cadastrar entregador. Tente novamente.");
+      console.error(error);
+      alert(error.message || "Erro ao cadastrar entregador. Tente novamente.");
     }
   }
 

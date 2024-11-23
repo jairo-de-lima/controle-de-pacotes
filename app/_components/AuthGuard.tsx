@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { Loading } from "../loading/Loading";
+import Loading from "@/app/loading/Loading"
 import React from "react";
 
 export default function AuthGuard({ children }: { children: React.ReactNode }) {

@@ -46,6 +46,7 @@ export const authOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
+        token.companyId= user.id
       }
       return token;
     },
@@ -54,6 +55,7 @@ export const authOptions = {
         id: token.id,
         email: token.email,
         name: token.name,
+        companyId: token.companyId
       };
       return session;
     },

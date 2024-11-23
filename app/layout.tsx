@@ -7,6 +7,7 @@ import "./globals.css";
 import ThemeToggle from "./_components/toggletheme";
 import Footer from "./_components/footer";
 import LogoutButton from "./_components/logout";
+import { ThemeProvider } from "./providers/theme-provider";
 
 export default function RootLayout({
   children,
@@ -19,8 +20,11 @@ export default function RootLayout({
   const isExcluded = excludedRoutes.includes(pathname);
 
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body>
+        <ThemeProvider attribute="class"
+          defaultTheme="system"
+          enableSystem>
         <SessionProvider>
           <div className="fixed w-full">
             <ThemeToggle />
@@ -30,6 +34,7 @@ export default function RootLayout({
           {children}
           <Footer />
         </SessionProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
