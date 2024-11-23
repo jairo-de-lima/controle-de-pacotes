@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
     if (!name || !email || !password) {
       return NextResponse.json(
         { error: "Todos os campos são obrigatórios" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
     if (existingCompany) {
       return NextResponse.json(
         { error: "Empresa já cadastrada com este nome ou email" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -48,13 +48,13 @@ export async function POST(req: NextRequest) {
         success: true,
         company,
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Erro ao criar empresa:", error);
     return NextResponse.json(
       { error: "Erro ao criar empresa" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

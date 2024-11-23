@@ -1,10 +1,11 @@
+import React from "react";
 import AuthGuard from "../_components/AuthGuard";
 import SummaryDeliveries from "./_components/summary";
 
 const Deliveries = () => {
   return (
     <AuthGuard>
-      <div className="flex items-center justify-center min-h-screen bg-muted-foreground-foreground">
+      <div className="bg-muted-foreground-foreground flex min-h-screen items-center justify-center">
         <SummaryDeliveries />
       </div>
     </AuthGuard>

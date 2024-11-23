@@ -10,14 +10,14 @@ import {
   CardTitle,
 } from "../_components/ui/card";
 import { useSession } from "next-auth/react";
+import Dashboard from "@/app/(home)/_components/dashbord";
 
 export default function Home() {
   const { data: session } = useSession();
-  console.log(session);
 
   return (
     <AuthGuard>
-      <div className="flex items-center justify-center min-h-screen bg-muted-foreground-foreground">
+      <div className="bg-muted-foreground-foreground flex min-h-screen flex-col items-center justify-center gap-2">
         <Card>
           <CardHeader>
             <CardTitle>
@@ -30,6 +30,7 @@ export default function Home() {
             </CardDescription>
           </CardContent>
         </Card>
+        <Dashboard />
       </div>
     </AuthGuard>
   );

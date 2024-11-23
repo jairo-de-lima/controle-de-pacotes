@@ -71,9 +71,10 @@ body {
     * {
       @apply border-border;
     }
-    /* html {
+
+    html {
       @apply h-full;
-    } */
+    }
     body {
       @apply h-full bg-background text-foreground;
     }
