@@ -12,7 +12,7 @@ export default function ThemeToggle() {
   // Sincroniza o tema com o localStorage e a preferência do sistema
   useEffect(() => {
     const userPrefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)"
+      "(prefers-color-scheme: dark)",
     ).matches;
     const savedTheme = localStorage.getItem("theme");
 
@@ -34,7 +34,7 @@ export default function ThemeToggle() {
   };
 
   return (
-    <div className="flex items-center justify-end space-x-2 p-2 absolute">
+    <div className="flex items-center justify-end space-x-2 p-2">
       <Switch id="switch-Mode" onClick={toggleTheme} />
       <Label htmlFor="switch-Mode">
         {isDarkMode ? <SunIcon size={16} /> : <MoonIcon size={16} />}

@@ -19,7 +19,6 @@ import AuthGuard from "../_components/AuthGuard";
 import { useSession } from "next-auth/react";
 import { createCourier } from "./_actions/courier";
 
-
 const PersonForm = () => {
   const { data: session } = useSession();
 
@@ -46,7 +45,6 @@ const PersonForm = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      
       const response = await createCourier({
         ...values,
         companyId: session?.user?.id || "", // Passa o ID da empresa
@@ -61,10 +59,10 @@ const PersonForm = () => {
 
   return (
     <AuthGuard>
-      <div className="flex items-center justify-center min-h-screen bg-muted-foreground-foreground">
-        <div className="flex flex-col bg-background p-4 m-2 border rounded-lg shadow-md max-w-md w-full">
-          <h2 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <PlusCircle className="w-6 h-6" />
+      <div className="bg-muted-foreground-foreground flex min-h-screen items-center justify-center">
+        <div className="m-2 flex w-full max-w-md flex-col rounded-lg border bg-background p-4 shadow-md">
+          <h2 className="mb-4 flex items-center gap-2 text-xl font-bold">
+            <PlusCircle className="h-6 w-6" />
             Cadastro de Entregadores
           </h2>
           <Form {...form}>
@@ -103,7 +101,7 @@ const PersonForm = () => {
                   </FormItem>
                 )}
               />
-              <div className="flex gap-1 justify-between">
+              <div className="flex justify-between gap-1">
                 <Button asChild>
                   <a href={"/"}>Cancelar</a>
                 </Button>

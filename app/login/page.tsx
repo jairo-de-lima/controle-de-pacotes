@@ -108,7 +108,7 @@ const LoginPage = () => {
                           type="button"
                           variant="outline"
                           onClick={() => setShowPassword(!showPassword)} // Alterna visibilidade da senha
-                          className="absolute right-2 top-1/2 -translate-y-1/2 border-none"
+                          className="absolute right-2 top-1/2 -translate-y-1/2 border-none bg-transparent hover:bg-transparent"
                         >
                           {showPassword ? "🙈" : "👁️"}
                         </Button>

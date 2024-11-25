@@ -1,10 +1,11 @@
 "use client"; // Certificando-se de que o componente é tratado como cliente
 
 import { LogOutIcon } from "lucide-react";
-import { Button } from "./ui/button";
+
 import React from "react";
 import { signOut } from "next-auth/react"; // Importando a função de logout
 import { usePathname } from "next/navigation";
+import { Button } from "@/app/_components/ui/button";
 
 const LogoutButton = () => {
   const pathname = usePathname();
