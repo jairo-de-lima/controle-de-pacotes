@@ -1,6 +1,10 @@
-"use client";
-
-import AuthGuard from "@/app/_components/AuthGuard";
+import { useState } from "react";
+import { useSession } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { Button } from "@/app/_components/ui/button";
 import { Calendar } from "@/app/_components/ui/calendar";
 import {
@@ -23,29 +27,29 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
-import { cn } from "@/app/_lib/utils";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { CalendarIcon, Package } from "lucide-react";
-import { useSession } from "next-auth/react";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
+import { cn } from "@/app/_lib/utils";
+import CourierButtons from "./searchCourier";
 import { CreateDeliveries } from "../_actions/deliveries-form";
+import AuthGuard from "@/app/_components/AuthGuard";
 
 const DeliveriesForm = () => {
   const { data: session } = useSession();
 
+  // Estado para armazenar o entregador selecionado
+  const [selectedCourier, setSelectedCourier] = useState(null);
+
   const formSchema = z.object({
     date: z.date({
-      required_error: "Necessario fornecer a data",
+      required_error: "Necessário fornecer a data",
     }),
-    packages: z.number({
-      required_error: "O valor é obrigatório",
-    }),
+    packages: z
+      .number({
+        required_error: "A quantidade de pacotes é obrigatória",
+      })
+      .positive("A quantidade de pacotes deve ser maior que zero"),
     additionalFee: z.number({
-      required_error: "O valor é obrigatório",
+      required_error: "O valor adicional é obrigatório",
     }),
   });
 
@@ -59,24 +63,26 @@ const DeliveriesForm = () => {
   });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
+    if (!selectedCourier) {
+      alert("Por favor, selecione um entregador antes de enviar!");
+      return;
+    }
+
     try {
       const response = await CreateDeliveries({
         ...values,
         companyId: session?.user?.id || "",
+        courierId: selectedCourier.id, // Usa o ID do entregador selecionado
       });
-      console.log(values);
+
       alert(response.message);
       form.reset();
+      setSelectedCourier(null); // Limpa o entregador selecionado após o envio
     } catch (error) {
       console.error(error);
-      alert(error.message || "Erro ao cadastrar entregador. Tente novamente.");
+      alert("Erro ao cadastrar entrega. Tente novamente.");
     }
   }
-
-  // const onSubmit = (values: z.infer<typeof formSchema>) => {
-  //   console.log(values);
-  //   alert("Form submitted");
-  // };
 
   return (
     <AuthGuard>
@@ -85,22 +91,38 @@ const DeliveriesForm = () => {
           <Package size={18} />
           Registro de Entrega
         </CardTitle>
-        <CardDescription>adicione as entregas diarias aqui</CardDescription>
+        <CardDescription>Adicione as entregas diárias aqui</CardDescription>
         <CardContent className="mt-5 w-full">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              {/* Botões para selecionar o entregador */}
+              <div className="flex flex-col gap-2">
+                <h4 className="text-sm font-medium">Selecionar Entregador</h4>
+                <CourierButtons
+                  onSelectCourier={(courierId) =>
+                    setSelectedCourier({ id: courierId })
+                  }
+                />
+                {selectedCourier && (
+                  <p className="text-sm text-muted-foreground">
+                    Entregador selecionado: <b>{selectedCourier.id}</b>
+                  </p>
+                )}
+              </div>
+
+              {/* Campo de seleção de data */}
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
-                  <FormItem className="flex flex-col">
+                  <FormItem>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
-                            variant={"outline"}
+                            variant="outline"
                             className={cn(
-                              "w-[240px] pl-3 text-left font-normal",
+                              "w-full pl-3 text-left font-normal",
                               !field.value && "text-muted-foreground",
                             )}
                           >
@@ -132,6 +154,7 @@ const DeliveriesForm = () => {
                 )}
               />
 
+              {/* Campo para quantidade de pacotes */}
               <FormField
                 control={form.control}
                 name="packages"
@@ -140,10 +163,11 @@ const DeliveriesForm = () => {
                     <FormLabel>Pacotes</FormLabel>
                     <FormControl>
                       <Input
+                        type="number"
                         placeholder="Quantidade de pacotes"
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value))
+                          field.onChange(parseInt(e.target.value, 10) || 0)
                         }
                       />
                     </FormControl>
@@ -151,18 +175,21 @@ const DeliveriesForm = () => {
                   </FormItem>
                 )}
               />
+
+              {/* Campo para valor adicional */}
               <FormField
                 control={form.control}
                 name="additionalFee"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Valor por pacote</FormLabel>
+                    <FormLabel>Valor Adicional</FormLabel>
                     <FormControl>
                       <Input
-                        placeholder="Digite o valor"
+                        type="number"
+                        placeholder="Valor adicional"
                         {...field}
                         onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value))
+                          field.onChange(parseFloat(e.target.value) || 0)
                         }
                       />
                     </FormControl>
@@ -170,8 +197,10 @@ const DeliveriesForm = () => {
                   </FormItem>
                 )}
               />
-              <div className="flex justify-between gap-1">
-                <Button asChild>
+
+              {/* Botões de ação */}
+              <div className="flex justify-between gap-2">
+                <Button variant="outline" asChild>
                   <a href={"/"}>Cancelar</a>
                 </Button>
                 <Button type="submit">Adicionar</Button>

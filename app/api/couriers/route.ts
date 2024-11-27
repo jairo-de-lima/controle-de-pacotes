@@ -1,4 +1,3 @@
-// app/api/couriers/route.ts
 import { NextResponse } from "next/server";
 import { CourierCRUD } from "@/app/_config/prismaCrud";
 

@@ -23,7 +23,7 @@ export async function CreateDeliveries({
     throw new Error("Courier ID is required");
   }
   try {
-    await DeliveryCRUD.upsert({
+    await DeliveryCRUD.create({
       courierId,
       date,
       packages,

@@ -34,7 +34,7 @@ export const CompanyCRUD = {
   },
   update: async (
     id: string,
-    data: { name?: string; email?: string; password?: string }
+    data: { name?: string; email?: string; password?: string },
   ) => {
     return await prisma.company.update({ where: { id }, data });
   },
@@ -60,7 +60,7 @@ export const CourierCRUD = {
   },
   update: async (
     id: string,
-    data: { name?: string; pricePerPackage?: number; companyId?: string }
+    data: { name?: string; pricePerPackage?: number; companyId?: string },
   ) => {
     return await prisma.courier.update({ where: { id }, data });
   },
@@ -96,7 +96,7 @@ export const DeliveryCRUD = {
       additionalFee?: number;
       totalValue?: number;
       companyId?: string;
-    }
+    },
   ) => {
     return await prisma.delivery.update({ where: { id }, data });
   },
