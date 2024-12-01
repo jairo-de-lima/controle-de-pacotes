@@ -36,9 +36,8 @@ import { MoneyInput } from "@/app/addperson/_components/money-input";
 
 const DeliveriesForm = () => {
   const { data: session } = useSession();
-
-  // Estado para armazenar o entregador selecionado
   const [selectedCourier, setSelectedCourier] = useState(null);
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
 
   const formSchema = z.object({
     date: z.date({
@@ -75,13 +74,13 @@ const DeliveriesForm = () => {
       const response = await CreateDeliveries({
         ...values,
         companyId: session?.user?.id || "",
-        courierId: selectedCourier.id, // Usa o ID do entregador selecionado
+        courierId: selectedCourier.id,
         totalValue,
       });
 
       alert(response.message);
       form.reset();
-      setSelectedCourier(null); // Limpa o entregador selecionado após o envio
+      setSelectedCourier(null);
     } catch (error) {
       console.error(error);
       alert("Erro ao cadastrar entrega. Tente novamente.");
@@ -99,7 +98,6 @@ const DeliveriesForm = () => {
         <CardContent className="mt-5 w-full">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              {/* Botões para selecionar o entregador */}
               <div className="relative flex flex-col justify-center gap-2">
                 <CourierButtons
                   onSelectCourier={(courier) => setSelectedCourier(courier)}
@@ -112,14 +110,16 @@ const DeliveriesForm = () => {
                 )}
               </div>
 
-              {/* Campo de seleção de data */}
               <FormField
                 control={form.control}
                 name="date"
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Data</FormLabel>
-                    <Popover>
+                    <Popover
+                      open={isCalendarOpen}
+                      onOpenChange={setIsCalendarOpen}
+                    >
                       <PopoverTrigger asChild>
                         <FormControl>
                           <Button
@@ -144,9 +144,12 @@ const DeliveriesForm = () => {
                         <Calendar
                           mode="single"
                           selected={field.value}
-                          onSelect={field.onChange}
+                          onSelect={(selectedDate) => {
+                            field.onChange(selectedDate);
+                            setIsCalendarOpen(false);
+                          }}
                           disabled={(date) =>
-                            date > new Date() || date < new Date("01-01-1990")
+                            date > new Date() || date < new Date("1990-01-01")
                           }
                           initialFocus
                         />
@@ -157,7 +160,6 @@ const DeliveriesForm = () => {
                 )}
               />
 
-              {/* Campo para quantidade de pacotes */}
               <FormField
                 control={form.control}
                 name="packages"
@@ -169,15 +171,15 @@ const DeliveriesForm = () => {
                         type="number"
                         placeholder="Quantidade de pacotes"
                         {...field}
-                        value={field.value === 0 ? "" : field.value} // Mostra vazio se for 0
+                        value={field.value === 0 ? "" : field.value}
                         onFocus={(e) => {
                           if (e.target.value === "0") {
-                            field.onChange(""); // Remove o zero inicial ao focar
+                            field.onChange("");
                           }
                         }}
                         onChange={(e) => {
                           const value = parseInt(e.target.value, 10) || 0;
-                          field.onChange(value); // Atualiza o valor no form
+                          field.onChange(value);
                         }}
                       />
                     </FormControl>
@@ -186,7 +188,6 @@ const DeliveriesForm = () => {
                 )}
               />
 
-              {/* Campo para valor adicional */}
               <FormField
                 control={form.control}
                 name="additionalFee"
@@ -209,7 +210,6 @@ const DeliveriesForm = () => {
                 )}
               />
 
-              {/* Botões de ação */}
               <div className="flex justify-between gap-2">
                 <Button variant="outline" asChild>
                   <a href={"/"}>Cancelar</a>
