@@ -1,89 +1,204 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import { TrendingUp } from "lucide-react";
-import { Pie, PieChart } from "recharts";
 import {
-  ChartConfig,
-  ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-} from "@/app/_components/ui/chart";
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+  Legend,
+} from "recharts";
 
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-];
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-} satisfies ChartConfig;
+import Loading from "@/app/loading/Loading";
 
-const Dashboard = () => {
-  return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
-        <CardTitle>Pie Chart - Donut</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-1 pb-0">
-        <ChartContainer
-          config={chartConfig}
-          className="mx-auto aspect-square max-h-[180px]"
-        >
-          <PieChart>
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent hideLabel />}
-            />
-            <Pie
-              data={chartData}
-              dataKey="visitors"
-              nameKey="browser"
-              innerRadius={60}
-            />
-          </PieChart>
-        </ChartContainer>
-      </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
-        </div>
-        <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
-        </div>
-      </CardFooter>
-    </Card>
-  );
+// Tipos para tipar os dados
+interface Courier {
+  id: string;
+  name: string;
+  pricePerPackage: number;
+}
+
+interface DeliveryStats {
+  totalPackages: number;
+  totalRoutes: number;
+  courierEarnings: Array<{
+    name: string;
+    value: number;
+  }>;
+}
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <Card className="flex flex-col items-center justify-center bg-transparent p-2">
+        <CardTitle className="text-sm font-extrabold uppercase">
+          {payload[0].payload.name}
+        </CardTitle>
+        <CardContent className="text-sm font-bold">
+          Ganhos: R$ {Number(payload[0].value).toFixed(2)}
+        </CardContent>
+      </Card>
+    );
+  }
+  return null;
 };
 
-export default Dashboard;
+export default function Dashboard() {
+  const [courierStats, setCourierStats] = useState<DeliveryStats>({
+    totalPackages: 0,
+    totalRoutes: 0,
+    courierEarnings: [],
+  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourierStats = async () => {
+      try {
+        setIsLoading(true);
+
+        // Buscar dados de entregas
+        const deliveriesResponse = await fetch("/api/deliveries");
+        const deliveriesData = await deliveriesResponse.json();
+
+        // Buscar entregadores
+        const couriersResponse = await fetch("/api/couriers");
+        const couriersData = await couriersResponse.json();
+
+        // Calcular estatísticas
+        const totalPackages = deliveriesData.reduce(
+          (sum: number, delivery: { packages: number }) =>
+            sum + delivery.packages,
+          0,
+        );
+        const totalRoutes = deliveriesData.length;
+
+        // Calcular ganhos por entregador
+        const courierEarnings = couriersData.map((courier: Courier) => {
+          // Filtrar entregas deste entregador e somar o valor total
+          const courierDeliveries = deliveriesData.filter(
+            (d: { courierId: string }) => d.courierId === courier.id,
+          );
+          const totalValue = courierDeliveries.reduce(
+            (sum: number, delivery: { totalValue: number }) =>
+              sum + delivery.totalValue,
+            0,
+          );
+
+          return {
+            name: courier.name,
+            value: totalValue,
+          };
+        });
+
+        setCourierStats({
+          totalPackages,
+          totalRoutes,
+          courierEarnings,
+        });
+
+        setIsLoading(false);
+      } catch (err) {
+        setError("Erro ao carregar estatísticas");
+        setIsLoading(false);
+        console.error(err);
+      }
+    };
+
+    fetchCourierStats();
+  }, []);
+
+  // Cores para o gráfico de pizza
+  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
+
+  if (isLoading) {
+    return (
+      <div className="flex h-full items-center justify-center p-4">
+        <Loading />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="p-4 text-red-500">{error}</div>;
+  }
+
+  return (
+    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
+      {/* Cartão de Estatísticas Gerais */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Visão Geral de Entregas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            <p className="text-sm">
+              Total de Pacotes Entregues:
+              <span className="ml-2 font-bold">
+                {courierStats.totalPackages}
+              </span>
+            </p>
+            <p className="text-sm">
+              Total de Rotas Efetuadas:
+              <span className="ml-2 font-bold">{courierStats.totalRoutes}</span>
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Gráfico de Pizza de Ganhos por Entregador */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Ganhos por Entregador</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {courierStats.courierEarnings.length > 0 ? (
+            <ResponsiveContainer width="100%" height={300}>
+              <PieChart>
+                <Pie
+                  data={courierStats.courierEarnings}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  dataKey="value"
+                  // label={({ name, percent }) =>
+                  //   `${name} ${(percent * 100).toFixed(0)}%`
+                  // }
+                >
+                  {courierStats.courierEarnings.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  content={<CustomTooltip />}
+                  cursor={{ fill: "rgba(0, 0, 0, 0.1)" }}
+                />
+
+                <Legend
+                  layout="horizontal"
+                  verticalAlign="bottom"
+                  align="center"
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          ) : (
+            <p className="text-center text-gray-500">
+              Sem dados de ganhos disponíveis
+            </p>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

@@ -18,10 +18,11 @@ export default function Home() {
   return (
     <AuthGuard>
       <div className="bg-muted-foreground-foreground flex min-h-screen flex-col items-center justify-center gap-2">
-        <Card>
+        <Card className="flex w-[90%] flex-col items-center">
           <CardHeader>
-            <CardTitle>
-              Bem-vindo ao Dashboard, {session?.user?.name}!
+            <CardTitle className="text-base">
+              Bem-vindo ao Dashboard,{" "}
+              <span className="uppercase">{session?.user?.name} </span>!
             </CardTitle>
           </CardHeader>
           <CardContent>
