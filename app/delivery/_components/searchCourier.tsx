@@ -37,11 +37,11 @@ const CourierButtons = ({ onSelectCourier }) => {
             (courier) => courier.id === selectedCourierId,
           );
           if (selectedCourier) {
-            onSelectCourier(selectedCourier.id); // Chama o callback passando o ID do entregador
+            onSelectCourier(selectedCourier); // Chama o callback passando o ID do entregador
           }
         }}
       >
-        <SelectTrigger className="w-[180px]">
+        <SelectTrigger>
           <SelectValue placeholder="Selecionar entregador" />
         </SelectTrigger>
         <SelectContent>
@@ -49,6 +49,7 @@ const CourierButtons = ({ onSelectCourier }) => {
             <SelectLabel>Entregadores</SelectLabel>
             {couriers.map((courier) => (
               <SelectItem key={courier.id} value={courier.id}>
+                {/*certificando que esta passando o Id do entregador */}
                 {courier.name}
               </SelectItem>
             ))}

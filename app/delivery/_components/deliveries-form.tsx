@@ -27,11 +27,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/app/_components/ui/popover";
-import { CalendarIcon, Package } from "lucide-react";
+import { CalendarIcon, CheckCircle, Package } from "lucide-react";
 import { cn } from "@/app/_lib/utils";
 import CourierButtons from "./searchCourier";
 import { CreateDeliveries } from "../_actions/deliveries-form";
 import AuthGuard from "@/app/_components/AuthGuard";
+import { MoneyInput } from "@/app/addperson/_components/money-input";
 
 const DeliveriesForm = () => {
   const { data: session } = useSession();
@@ -67,12 +68,15 @@ const DeliveriesForm = () => {
       alert("Por favor, selecione um entregador antes de enviar!");
       return;
     }
+    const { pricePerPackage } = selectedCourier;
+    const totalValue = pricePerPackage * values.packages + values.additionalFee;
 
     try {
       const response = await CreateDeliveries({
         ...values,
         companyId: session?.user?.id || "",
         courierId: selectedCourier.id, // Usa o ID do entregador selecionado
+        totalValue,
       });
 
       alert(response.message);
@@ -96,17 +100,15 @@ const DeliveriesForm = () => {
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               {/* Botões para selecionar o entregador */}
-              <div className="flex flex-col gap-2">
-                <h4 className="text-sm font-medium">Selecionar Entregador</h4>
+              <div className="relative flex flex-col justify-center gap-2">
                 <CourierButtons
-                  onSelectCourier={(courierId) =>
-                    setSelectedCourier({ id: courierId })
-                  }
+                  onSelectCourier={(courier) => setSelectedCourier(courier)}
                 />
                 {selectedCourier && (
-                  <p className="text-sm text-muted-foreground">
-                    Entregador selecionado: <b>{selectedCourier.id}</b>
-                  </p>
+                  <CheckCircle
+                    size={18}
+                    className="absolute right-10 top-1/2 -translate-y-1/2 text-green-400"
+                  />
                 )}
               </div>
 
@@ -116,6 +118,7 @@ const DeliveriesForm = () => {
                 name="date"
                 render={({ field }) => (
                   <FormItem>
+                    <FormLabel>Data</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
                         <FormControl>
@@ -166,9 +169,16 @@ const DeliveriesForm = () => {
                         type="number"
                         placeholder="Quantidade de pacotes"
                         {...field}
-                        onChange={(e) =>
-                          field.onChange(parseInt(e.target.value, 10) || 0)
-                        }
+                        value={field.value === 0 ? "" : field.value} // Mostra vazio se for 0
+                        onFocus={(e) => {
+                          if (e.target.value === "0") {
+                            field.onChange(""); // Remove o zero inicial ao focar
+                          }
+                        }}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value, 10) || 0;
+                          field.onChange(value); // Atualiza o valor no form
+                        }}
                       />
                     </FormControl>
                     <FormMessage />
@@ -184,13 +194,14 @@ const DeliveriesForm = () => {
                   <FormItem>
                     <FormLabel>Valor Adicional</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="Valor adicional"
-                        {...field}
-                        onChange={(e) =>
-                          field.onChange(parseFloat(e.target.value) || 0)
+                      <MoneyInput
+                        placeholder="Digite o valor"
+                        value={field.value}
+                        onValueChange={({ floatValue }) =>
+                          field.onChange(floatValue)
                         }
+                        onBlur={field.onBlur}
+                        disabled={field.disabled}
                       />
                     </FormControl>
                     <FormMessage />
