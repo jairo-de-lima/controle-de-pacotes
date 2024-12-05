@@ -1,35 +1,143 @@
-import { Button } from "@/app/_components/ui/button";
+"use client";
+
+import React, { useState, useEffect, useCallback } from "react";
+
+import DeliveryFilter from "./components/_actions/delivery-filter";
+import DeliverySummary from "./components/_actions/delivery-summary";
+
 import {
   Card,
   CardContent,
-  CardDescription,
+  CardHeader,
   CardTitle,
-} from "@/app/_components/ui/card";
-import { DollarSignIcon, Search } from "lucide-react";
-import React from "react";
-import AuthGuard from "../_components/AuthGuard";
+} from "../_components/ui/card";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../_components/ui/dialog"; // Certifique-se de ter os componentes de dialog
+import { CalendarClock } from "lucide-react";
+import { DeliveryAnalytics } from "./components/_actions/dellivery-analytics";
 
-const Summary = () => {
+type Courier = {
+  id: string;
+  name: string;
+};
+
+type Delivery = {
+  id: string;
+  courierId: string;
+  date: string;
+  // Outros campos relevantes da entrega
+};
+
+const SummaryPage: React.FC = () => {
+  const [selectedPerson, setSelectedPerson] = useState<string>("all");
+  const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
+  const [couriers, setCouriers] = useState<Courier[]>([]);
+  const [deliveries, setDeliveries] = useState<Delivery[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false); // Controle do estado do dialog
+
+  const fetchCouriers = useCallback(async () => {
+    try {
+      const response = await fetch("/api/couriers");
+      if (!response.ok) throw new Error("Erro ao buscar entregadores");
+
+      const data: Courier[] = await response.json();
+      setCouriers(data);
+    } catch (error) {
+      console.error(error);
+    }
+  }, []);
+
+  const fetchDeliveries = useCallback(async () => {
+    try {
+      let url = "/api/deliveries";
+      const queryParams: string[] = [];
+
+      if (selectedPerson !== "all") {
+        queryParams.push(`courierId=${selectedPerson}`);
+      }
+
+      if (dateRange.from && dateRange.to) {
+        queryParams.push(
+          `start=${dateRange.from.toISOString()}&end=${dateRange.to.toISOString()}`,
+        );
+      }
+
+      if (queryParams.length > 0) {
+        url += `?${queryParams.join("&")}`;
+      }
+
+      console.log("Fetching deliveries with URL:", url);
+
+      const response = await fetch(url);
+
+      if (!response.ok) {
+        throw new Error(`Erro na resposta da API: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      console.log("Deliveries fetched:", data);
+
+      setDeliveries(data);
+    } catch (error) {
+      console.error("Erro ao carregar entregas:", error);
+    }
+  }, [selectedPerson, dateRange]);
+
+  useEffect(() => {
+    fetchCouriers();
+  }, [fetchCouriers]);
+
+  useEffect(() => {
+    fetchDeliveries();
+  }, [fetchDeliveries]);
+
   return (
-    <AuthGuard>
-      <div className="min-w-screen bg-muted-foreground-foreground flex min-h-screen flex-col items-center justify-center">
-        <Card className="flex h-full w-full flex-col items-center gap-2">
-          <CardTitle>
-            <div className="flex items-center justify-between gap-2">
-              <DollarSignIcon size={18} /> <h1>Resumo de Entregas</h1>
-              <Button variant="outline" className="border-none">
-                <Search size={18} />
-              </Button>
-            </div>
+    <div className="min-w-screen flex min-h-screen flex-col items-center justify-center p-4">
+      <Card>
+        <CardHeader className="flex items-center justify-between">
+          <CardTitle className="mb-4 text-xl font-bold">
+            Resumo de Entregas
           </CardTitle>
-          <CardDescription>Escolha o entregador</CardDescription>
-          <CardContent>
-            codigo para renderizar os entregadores aqui!!
-          </CardContent>
-        </Card>
-      </div>
-    </AuthGuard>
+          {/* Ícone de calendário como botão */}
+          <Dialog>
+            <DialogTrigger asChild>
+              <button
+                onClick={() => setIsDialogOpen(true)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <CalendarClock size={24} />
+              </button>
+            </DialogTrigger>{" "}
+          </Dialog>
+        </CardHeader>
+        <CardContent>
+          <DeliveryFilter
+            selectedPerson={selectedPerson}
+            setSelectedPerson={setSelectedPerson}
+            dateRange={dateRange}
+            setDateRange={setDateRange}
+            couriers={couriers}
+          />
+          <DeliverySummary deliveries={deliveries} />
+        </CardContent>
+      </Card>
+
+      {/* Dialog do DeliveryAnalytics */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Análise de Entregas</DialogTitle>
+          </DialogHeader>
+          <DeliveryAnalytics />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 };
 
-export default Summary;
+export default SummaryPage;
