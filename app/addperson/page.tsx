@@ -18,21 +18,18 @@ import { MoneyInput } from "./_components/money-input";
 import AuthGuard from "../_components/AuthGuard";
 import { useSession } from "next-auth/react";
 import { createCourier } from "./_actions/courier";
+// import toast from "react-hot-toast";
+import { useToast } from "../_hooks/use-toast";
 
 const PersonForm = () => {
   const { data: session } = useSession();
+  const { toast } = useToast();
 
   const formSchema = z.object({
-    name: z.string().min(2, {
-      message: "O Nome é obrigatório",
+    name: z.string().min(2),
+    pricePerPackage: z.number().positive({
+      message: "O valor é obrigatório",
     }),
-    pricePerPackage: z
-      .number({
-        required_error: "O valor é obrigatório",
-      })
-      .positive({
-        message: "O valor é obrigatório",
-      }),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -49,11 +46,21 @@ const PersonForm = () => {
         ...values,
         companyId: session?.user?.id || "", // Passa o ID da empresa
       });
-      alert(response.message);
+      if (response.success) {
+        toast({
+          title: "Sucesso",
+          description: "O novo entregador foi criado com sucesso",
+          duration: 2000,
+        });
+      }
       form.reset();
     } catch (error) {
       console.error(error);
-      alert(error.message || "Erro ao cadastrar entregador. Tente novamente.");
+      toast({
+        title: "Opss...",
+        description: "Ocorreu um erro ao criar o novo entregador",
+        duration: 2000,
+      });
     }
   }
 

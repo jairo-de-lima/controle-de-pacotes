@@ -33,24 +33,22 @@ import CourierButtons from "./searchCourier";
 import { CreateDeliveries } from "../_actions/deliveries-form";
 import AuthGuard from "@/app/_components/AuthGuard";
 import { MoneyInput } from "@/app/addperson/_components/money-input";
+import { useToast } from "@/app/_hooks/use-toast";
 
 const DeliveriesForm = () => {
   const { data: session } = useSession();
   const [selectedCourier, setSelectedCourier] = useState(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const { toast } = useToast();
 
   const formSchema = z.object({
     date: z.date({
       required_error: "Necessário fornecer a data",
     }),
     packages: z
-      .number({
-        required_error: "A quantidade de pacotes é obrigatória",
-      })
+      .number()
       .positive("A quantidade de pacotes deve ser maior que zero"),
-    additionalFee: z.number({
-      required_error: "O valor adicional é obrigatório",
-    }),
+    additionalFee: z.number(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -64,7 +62,10 @@ const DeliveriesForm = () => {
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!selectedCourier) {
-      alert("Por favor, selecione um entregador antes de enviar!");
+      toast({
+        title: "Opss...",
+        description: "Por favor, selecione um entregador antes de enviar!",
+      });
       return;
     }
     const { pricePerPackage } = selectedCourier;
@@ -78,12 +79,21 @@ const DeliveriesForm = () => {
         totalValue,
       });
 
-      alert(response.message);
+      toast({
+        title: "Sucesso",
+        description: response.message,
+        duration: 2000,
+      });
       form.reset();
       setSelectedCourier(null);
     } catch (error) {
       console.error(error);
-      alert("Erro ao cadastrar entrega. Tente novamente.");
+      toast({
+        title: "Opss",
+        description: "Houve algum erro! verifique os dados e tente novamente!",
+        variant: "destructive",
+        duration: 2000,
+      });
     }
   }
 

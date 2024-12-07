@@ -8,6 +8,7 @@ import Footer from "./_components/footer";
 
 import { ThemeProvider } from "./providers/theme-provider";
 import Navbar from "./navbar/navbar";
+import { Toaster } from "./_components/ui/toaster";
 
 export default function RootLayout({
   children,
@@ -23,6 +24,7 @@ export default function RootLayout({
               <Navbar />
             </div>
             {children}
+            <Toaster />
             <Footer />
           </SessionProvider>
         </ThemeProvider>
