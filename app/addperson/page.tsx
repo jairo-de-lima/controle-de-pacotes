@@ -17,9 +17,8 @@ import { Button } from "../_components/ui/button";
 import { MoneyInput } from "./_components/money-input";
 import AuthGuard from "../_components/AuthGuard";
 import { useSession } from "next-auth/react";
-import { createCourier } from "./_actions/courier";
-// import toast from "react-hot-toast";
 import { useToast } from "../_hooks/use-toast";
+import { createCourier } from "../_actions/_addperson-actions/courier";
 
 const PersonForm = () => {
   const { data: session } = useSession();

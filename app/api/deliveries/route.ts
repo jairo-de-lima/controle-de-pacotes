@@ -9,7 +9,6 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    // Log para depuração
     console.log("courierId:", courierId);
     console.log("start:", start);
     console.log("end:", end);
@@ -17,16 +16,14 @@ export async function GET(request: Request) {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
-    // Filtrando por courierId
     if (courierId) {
       where.courierId = courierId;
     }
 
-    // Filtrando por data
     if (start && end) {
       where.date = {
-        gte: new Date(start), // Data inicial
-        lte: new Date(end), // Data final
+        gte: new Date(start).toISOString(),
+        lte: new Date(end).toISOString(),
       };
     }
 
@@ -39,9 +36,11 @@ export async function GET(request: Request) {
         packages: true,
         totalValue: true,
         courierId: true,
-        date: true, // Usando o campo `date` para a data
+        date: true,
       },
     });
+
+    console.log("Entregas encontradas:", deliveries);
 
     return NextResponse.json(deliveries);
   } catch (error) {
