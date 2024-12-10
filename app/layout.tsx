@@ -1,4 +1,4 @@
-"use client"; // Torna o layout um Client Component
+"use client";
 
 import { SessionProvider } from "next-auth/react";
 

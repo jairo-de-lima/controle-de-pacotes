@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { CourierCRUD } from "@/app/_config/prismaCrud";
+import { revalidatePath } from "next/cache";
 
 export async function GET(
   req: Request,
@@ -29,6 +30,10 @@ export async function PUT(
   const data = await req.json();
   try {
     const updatedCourier = await CourierCRUD.update(params.id, data);
+
+    // Revalidar o cache antes de retornar a resposta
+    revalidatePath("/courier");
+
     return NextResponse.json(updatedCourier);
   } catch {
     return NextResponse.json(
@@ -44,6 +49,10 @@ export async function DELETE(
 ) {
   try {
     await CourierCRUD.delete(params.id);
+
+    // Revalidar o cache antes de retornar a resposta
+    revalidatePath("/courier");
+
     return NextResponse.json({ message: "Entregador deletado com sucesso." });
   } catch {
     return NextResponse.json(

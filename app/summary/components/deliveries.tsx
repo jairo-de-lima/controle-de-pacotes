@@ -9,6 +9,7 @@ import {
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
 import { Card } from "@/app/_components/ui/card";
+import { PencilIcon, TrashIcon } from "lucide-react";
 
 type Delivery = {
   courierId: string;
@@ -103,25 +104,35 @@ export function Delivery() {
               selectedPersonDeliveries.map((delivery) => (
                 <div
                   key={delivery.id}
-                  className="rounded-md border p-4 shadow-sm"
+                  className="flex w-full items-center justify-between gap-2 rounded-md border p-4 shadow-sm"
                 >
-                  <p>
-                    <strong>Data:</strong>{" "}
-                    {new Date(delivery.date).toLocaleDateString()}
-                  </p>
-                  <p>
-                    <strong>Pacotes entregues:</strong> {delivery.packages}
-                  </p>
-                  <p>
-                    <strong>Valor adicional:</strong> R$
-                    {delivery.additionalValue
-                      ? delivery.additionalValue.toFixed(2)
-                      : "0.00"}
-                  </p>
-                  <p>
-                    <strong>Valor total:</strong> R$
-                    {delivery.totalValue.toFixed(2)}
-                  </p>
+                  <div>
+                    <p>
+                      <strong>Data:</strong>{" "}
+                      {new Date(delivery.date).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Pacotes entregues:</strong> {delivery.packages}
+                    </p>
+                    <p>
+                      <strong>Valor adicional:</strong> R$
+                      {delivery.additionalValue
+                        ? delivery.additionalValue.toFixed(2)
+                        : "0.00"}
+                    </p>
+                    <p>
+                      <strong>Valor total:</strong> R$
+                      {delivery.totalValue.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="mr-0 flex">
+                    <Button variant="outline" className="mr-2">
+                      <TrashIcon size={18} />
+                    </Button>
+                    <Button variant="outline" className="mr-2">
+                      <PencilIcon size={18} />
+                    </Button>
+                  </div>
                 </div>
               ))
             ) : (

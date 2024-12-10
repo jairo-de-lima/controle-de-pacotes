@@ -32,7 +32,7 @@ import { cn } from "@/app/_lib/utils";
 import CourierButtons from "./searchCourier";
 
 import AuthGuard from "@/app/_components/AuthGuard";
-import { MoneyInput } from "@/app/addperson/_components/money-input";
+import { MoneyInput } from "@/app/courier/_components/money-input";
 import { useToast } from "@/app/_hooks/use-toast";
 import { CreateDeliveries } from "@/app/_actions/_delivery-actions/deliveries-form";
 

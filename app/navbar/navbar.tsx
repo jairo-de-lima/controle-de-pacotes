@@ -35,7 +35,7 @@ const Navbar = () => {
           <Link href="/" className="hover:text-primary">
             Home
           </Link>
-          <Link href="/addperson" className="hover:text-primary">
+          <Link href="/courier" className="hover:text-primary">
             Entregador
           </Link>
           <Link href="/delivery" className="hover:text-primary">
