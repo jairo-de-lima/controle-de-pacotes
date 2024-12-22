@@ -37,7 +37,8 @@ const CourierButtons = ({ onSelectCourier }) => {
             (courier) => courier.id === selectedCourierId,
           );
           if (selectedCourier) {
-            onSelectCourier(selectedCourier); // Chama o callback passando o ID do entregador
+            onSelectCourier(selectedCourier);
+            return []; // Chama o callback passando o ID do entregador
           }
         }}
       >
