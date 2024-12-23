@@ -36,6 +36,7 @@ export async function GET(request: Request) {
         packages: true,
         totalValue: true,
         courierId: true,
+        additionalFee: true,
         date: true,
       },
     });

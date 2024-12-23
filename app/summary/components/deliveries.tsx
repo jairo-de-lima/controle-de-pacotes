@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import {
   Dialog,
@@ -9,7 +10,9 @@ import {
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
 import { Card } from "@/app/_components/ui/card";
-import { PencilIcon, TrashIcon } from "lucide-react";
+import { PencilIcon, TrashIcon, User } from "lucide-react";
+import { useToast } from "@/app/_hooks/use-toast";
+import { EditDelivery } from "./edit-deliveries";
 
 type Delivery = {
   courierId: string;
@@ -17,21 +20,24 @@ type Delivery = {
   date: string;
   packages: number;
   totalValue: number;
-  additionalValue: number;
+  additionalFee: number;
   deliveryPersonId: string;
 };
 
 type DeliveryPerson = {
   id: string;
   name: string;
+  pricePerPackage: number;
 };
 
 export function Delivery() {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
-
+  const { toast } = useToast();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [deliveryPeople, setDeliveryPeople] = useState<DeliveryPerson[]>([]);
+  const [isEditing, setIsEditing] = useState(false);
+  const [deliveryToEdit, setDeliveryToEdit] = useState<Delivery | null>(null);
 
   useEffect(() => {
     async function fetchData() {
@@ -39,10 +45,8 @@ export function Delivery() {
         fetch("/api/deliveries").then((res) => res.json()),
         fetch("/api/couriers").then((res) => res.json()),
       ]);
-
-      console.log("Entregas recebidas:", fetchedDeliveries);
-      console.log("Entregadores recebidos:", fetchedPeople);
-
+      console.log(fetchedDeliveries);
+      console.log(fetchedPeople);
       setDeliveries(fetchedDeliveries);
       setDeliveryPeople(fetchedPeople);
     }
@@ -50,13 +54,59 @@ export function Delivery() {
     fetchData();
   }, []);
 
+  const handleDeliveryUpdated = async () => {
+    setIsEditing(false);
+    setDeliveryToEdit(null);
+    const updatedDeliveries = fetch("/api/deliveries").then((res) =>
+      res.json(),
+    );
+    setDeliveries(await updatedDeliveries);
+  };
+
   const handleCardClick = (personId: string) => {
     setSelectedPerson(personId);
     setIsOpen(true);
   };
+
   const selectedPersonDeliveries = selectedPerson
     ? deliveries.filter((delivery) => delivery.courierId === selectedPerson)
     : [];
+
+  const handleDelete = async (id: string) => {
+    try {
+      await fetch(`/api/deliveries/${id}`, {
+        method: "DELETE",
+      });
+      toast({
+        title: "Entrega deletada com sucesso!",
+        description: "A entrega foi deletada com sucesso.",
+        duration: 2000,
+      });
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Erro ao deletar entrega:", error);
+      toast({
+        title: "Erro ao deletar entrega.",
+        description: "Ocorreu um erro ao deletar a entrega.",
+        duration: 2000,
+      });
+    }
+    const updatedDeliveries = await fetch("/api/deliveries").then((res) =>
+      res.json(),
+    );
+    setDeliveries(updatedDeliveries);
+  };
+
+  const handleEdit = (id: string) => {
+    const delivery = deliveries.find((d) => d.id === id);
+    if (delivery) {
+      setDeliveryToEdit({
+        ...delivery,
+        date: delivery.date,
+      });
+      setIsEditing(true);
+    }
+  };
 
   return (
     <div>
@@ -66,10 +116,17 @@ export function Delivery() {
             (delivery) => delivery.courierId === person.id,
           );
           const totalDeliveries = personDeliveries.length;
-          const totalValue = personDeliveries.reduce(
-            (sum, delivery) => sum + delivery.totalValue,
-            0,
-          );
+          const pricePerPackage = person.pricePerPackage;
+          const totalValue =
+            pricePerPackage *
+              personDeliveries.reduce(
+                (acc, delivery) => acc + delivery.packages,
+                0,
+              ) +
+            personDeliveries.reduce(
+              (acc, delivery) => acc + delivery.additionalFee,
+              0,
+            );
 
           return (
             <Card
@@ -78,7 +135,10 @@ export function Delivery() {
               onClick={() => handleCardClick(person.id)}
             >
               <div className="p-4">
-                <h3 className="text-lg font-semibold">{person.name}</h3>
+                <h3 className="flex items-center gap-2 text-lg font-semibold">
+                  <User size={20} />
+                  {person.name}
+                </h3>
                 <p>Total de entregas: {totalDeliveries}</p>
                 <p>Total de ganhos: R${totalValue.toFixed(2)}</p>
               </div>
@@ -88,11 +148,6 @@ export function Delivery() {
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogTrigger asChild>
-          <Button variant="outline" className="hidden">
-            Detalhes
-          </Button>
-        </DialogTrigger>
         <DialogContent className="w-[90%] rounded-md">
           <DialogHeader>
             <DialogTitle className="flex w-full justify-center gap-2">
@@ -116,8 +171,8 @@ export function Delivery() {
                     </p>
                     <p>
                       <strong>Valor adicional:</strong> R$
-                      {delivery.additionalValue
-                        ? delivery.additionalValue.toFixed(2)
+                      {delivery.additionalFee
+                        ? delivery.additionalFee.toFixed(2)
                         : "0.00"}
                     </p>
                     <p>
@@ -126,12 +181,24 @@ export function Delivery() {
                     </p>
                   </div>
                   <div className="mr-0 flex">
-                    <Button variant="outline" className="mr-2">
+                    <Button
+                      variant="destructive"
+                      className="mr-2"
+                      onClick={() => handleDelete(delivery.id)}
+                    >
                       <TrashIcon size={18} />
                     </Button>
-                    <Button variant="outline" className="mr-2">
-                      <PencilIcon size={18} />
-                    </Button>
+                    <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                      <DialogTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="mr-2"
+                          onClick={() => handleEdit(delivery.id)}
+                        >
+                          <PencilIcon size={18} />
+                        </Button>
+                      </DialogTrigger>
+                    </Dialog>
                   </div>
                 </div>
               ))
@@ -141,6 +208,21 @@ export function Delivery() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {deliveryToEdit && isEditing && (
+        <Dialog open={isEditing} onOpenChange={setIsEditing}>
+          <DialogContent>
+            <DialogTitle>Editar Entrega</DialogTitle>
+            <EditDelivery
+              delivery={{
+                ...deliveryToEdit,
+                date: new Date(deliveryToEdit.date),
+              }}
+              onDeliveryUpdated={handleDeliveryUpdated}
+            />
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
