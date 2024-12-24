@@ -67,8 +67,6 @@ const Analytics = () => {
         url += `?${queryParams.join("&")}`;
       }
 
-      console.log("Fetching deliveries with URL:", url);
-
       const response = await fetch(url);
 
       if (!response.ok) {
@@ -76,7 +74,6 @@ const Analytics = () => {
       }
 
       const data = await response.json();
-      console.log("Deliveries fetched:", data);
 
       setDeliveries(data);
     } catch (error) {

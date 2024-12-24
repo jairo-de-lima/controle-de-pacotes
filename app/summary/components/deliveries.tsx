@@ -9,7 +9,12 @@ import {
   DialogTrigger,
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
-import { Card } from "@/app/_components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/app/_components/ui/card";
 import { PencilIcon, TrashIcon, User } from "lucide-react";
 import { useToast } from "@/app/_hooks/use-toast";
 import { EditDelivery } from "./edit-deliveries";
@@ -45,8 +50,7 @@ export function Delivery() {
         fetch("/api/deliveries").then((res) => res.json()),
         fetch("/api/couriers").then((res) => res.json()),
       ]);
-      console.log(fetchedDeliveries);
-      console.log(fetchedPeople);
+
       setDeliveries(fetchedDeliveries);
       setDeliveryPeople(fetchedPeople);
     }
@@ -109,7 +113,7 @@ export function Delivery() {
   };
 
   return (
-    <div>
+    <div className="bg-muted-foreground-foreground mb-4 mt-20 flex w-[80%] flex-col items-center justify-center">
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {deliveryPeople.map((person) => {
           const personDeliveries = deliveries.filter(
@@ -134,14 +138,16 @@ export function Delivery() {
               className="cursor-pointer shadow-md hover:shadow-lg"
               onClick={() => handleCardClick(person.id)}
             >
-              <div className="p-4">
-                <h3 className="flex items-center gap-2 text-lg font-semibold">
+              <CardHeader className="border-b p-1">
+                <CardTitle className="flex items-center gap-2 text-lg font-semibold uppercase">
                   <User size={20} />
                   {person.name}
-                </h3>
-                <p>Total de entregas: {totalDeliveries}</p>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="p-4">
+                <p>Entregas: {totalDeliveries}</p>
                 <p>Total de ganhos: R${totalValue.toFixed(2)}</p>
-              </div>
+              </CardContent>
             </Card>
           );
         })}
@@ -177,7 +183,9 @@ export function Delivery() {
                     </p>
                     <p>
                       <strong>Valor total:</strong> R$
-                      {delivery.totalValue.toFixed(2)}
+                      {(delivery.totalValue + delivery.additionalFee).toFixed(
+                        2,
+                      )}
                     </p>
                   </div>
                   <div className="mr-0 flex">

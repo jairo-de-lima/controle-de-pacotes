@@ -36,6 +36,8 @@ import {
 } from "@/app/_components/ui/dialog";
 import CourierButtons from "@/app/delivery/_components/searchCourier";
 import { MoneyInput } from "./money-input";
+import { ToastAction } from "@/app/_components/ui/toast";
+import Link from "next/link";
 
 interface Courier {
   id: string;
@@ -116,7 +118,12 @@ const CourierForm = () => {
       toast({
         title: "Opss...",
         description: "Ocorreu um erro ao deletar o entregador",
-        duration: 2000,
+        action: (
+          <ToastAction altText="Verificar entregas!">
+            <Link href="/summary">Verificar entregas</Link>
+          </ToastAction>
+        ),
+        duration: 3000,
       });
     }
   }

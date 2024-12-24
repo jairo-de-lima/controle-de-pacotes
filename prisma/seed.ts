@@ -13,8 +13,6 @@ async function main() {
       name: "Admin Company",
     },
   });
-
-  console.log("Seed completed: User created!");
 }
 
 main()

@@ -9,10 +9,6 @@ export async function GET(request: Request) {
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    console.log("courierId:", courierId);
-    console.log("start:", start);
-    console.log("end:", end);
-
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const where: any = {};
 
@@ -27,8 +23,6 @@ export async function GET(request: Request) {
       };
     }
 
-    console.log("Query filters:", where);
-
     const deliveries = await prisma.delivery.findMany({
       where,
       select: {
@@ -40,8 +34,6 @@ export async function GET(request: Request) {
         date: true,
       },
     });
-
-    console.log("Entregas encontradas:", deliveries);
 
     return NextResponse.json(deliveries);
   } catch (error) {
