@@ -15,7 +15,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import { PencilIcon, TrashIcon, User } from "lucide-react";
+import {
+  CalendarClock,
+  Package,
+  PencilIcon,
+  TrashIcon,
+  User,
+} from "lucide-react";
 import { useToast } from "@/app/_hooks/use-toast";
 import { EditDelivery } from "./edit-deliveries";
 
@@ -114,6 +120,24 @@ export function Delivery() {
 
   return (
     <div className="bg-muted-foreground-foreground mb-4 mt-20 flex w-[80%] flex-col items-center justify-center">
+      <div className="mb-4 flex w-full items-center justify-between">
+        <h1 className="flex items-center gap-2 text-xl font-semibold">
+          <Package size={20} />
+          Resumo de entregas
+        </h1>
+        <div>
+          <button
+            className="bg-primary-foreground-foreground hover hover:bg-primary-foreground-foreground-100 rounded-md px-4 py-2 text-white transition duration-300 ease-in-out"
+            onClick={() => {
+              // Open the dialog Analitycs
+              console.log("Open the dialog Analitycs");
+            }}
+          >
+            <CalendarClock size={20} />
+          </button>
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {deliveryPeople.map((person) => {
           const personDeliveries = deliveries.filter(
@@ -139,7 +163,7 @@ export function Delivery() {
               onClick={() => handleCardClick(person.id)}
             >
               <CardHeader className="border-b p-1">
-                <CardTitle className="flex items-center gap-2 text-lg font-semibold uppercase">
+                <CardTitle className="flex items-center gap-2 text-base font-semibold uppercase">
                   <User size={20} />
                   {person.name}
                 </CardTitle>
