@@ -1,44 +1,39 @@
 import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/app/_components/ui/dialog";
-import { Button } from "@/app/_components/ui/button";
 import { ExportPDFButton } from "./export-pdf-button";
 import DeliveryFilter from "./delivery-filter";
 import DeliverySummary from "./delivery-summary";
+import { ScrollArea } from "@/app/_components/ui/scroll-area";
 
 type Delivery = {
   id: string;
-  date: string;
+  courierId: string;
+  date: Date;
   packages: number;
+  additionalFee: number;
   totalValue: number;
-  additionalValue: number;
-  deliveryPersonId: string;
 };
 
-type DeliveryPerson = {
+type Courier = {
   id: string;
   name: string;
 };
 
 type DateRange = {
-  from: Date;
-  to: Date;
+  from?: Date;
+  to?: Date;
 };
 
 export function DeliveryAnalytics() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState<string>("all");
+  const [selectedPerson, setSelectedPerson] = useState<{
+    id: string;
+    name: string;
+  } | null>(null);
   const [dateRange, setDateRange] = useState<DateRange>({
     from: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
     to: new Date(),
   });
   const [deliveries, setDeliveries] = useState<Delivery[]>([]); // Estado para armazenar entregas
-  const [deliveryPeople, setDeliveryPeople] = useState<DeliveryPerson[]>([]); // Estado para armazenar entregadores
+  const [deliveryPeople, setDeliveryPeople] = useState<Courier[]>([]); // Estado para armazenar entregadores
 
   // Fetch de entregas (simulação)
   useEffect(() => {
@@ -55,7 +50,7 @@ export function DeliveryAnalytics() {
   // Fetch de entregadores (simulação)
   useEffect(() => {
     async function fetchDeliveryPeople() {
-      const fetchedPeople: DeliveryPerson[] = await fetch("/api/couriers")
+      const fetchedPeople: Courier[] = await fetch("/api/couriers")
         .then((res) => res.json())
         .catch((error) => console.error("Erro ao buscar entregadores:", error));
       setDeliveryPeople(fetchedPeople);
@@ -64,37 +59,55 @@ export function DeliveryAnalytics() {
     fetchDeliveryPeople();
   }, []);
 
+  const filteredDeliveries = deliveries.filter((delivery) => {
+    if (!dateRange) return true; // Caso `dateRange` seja nulo ou indefinido
+
+    const deliveryDate = new Date(delivery.date.replace(" ", "T"));
+
+    const isWithinDateRange =
+      (!dateRange.from || deliveryDate >= dateRange.from) &&
+      (!dateRange.to || deliveryDate <= dateRange.to);
+
+    const isSelectedPerson =
+      selectedPerson?.id === "all" || !selectedPerson
+        ? true
+        : delivery.courierId === selectedPerson.id;
+
+    return isWithinDateRange && isSelectedPerson;
+  });
+
+  console.log("Props enviadas para DeliverySummary:", {
+    deliveries: filteredDeliveries,
+    selectedPerson,
+    dateRange,
+  });
+
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Analisar Entregas</Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="mb-4 text-center text-xl font-bold">
-            Análise de Entregas
-          </DialogTitle>
-        </DialogHeader>
+    <div className="max-h-[500px] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+      <ScrollArea className="scroll-area-custom">
         <div className="space-y-4">
           <DeliveryFilter
             selectedPerson={selectedPerson}
-            setSelectedPerson={setSelectedPerson}
+            setSelectedPerson={(courier) => setSelectedPerson(courier)}
             dateRange={dateRange}
             setDateRange={setDateRange}
-            couriers={deliveryPeople} // Passando entregadores para o DeliveryFilter
-            deliveries={deliveries} // Passando entregas para o DeliveryFilter
+            couriers={deliveryPeople}
+            deliveries={deliveries}
           />
-          <DeliverySummary deliveries={deliveries} />
+          <DeliverySummary
+            deliveries={filteredDeliveries}
+            selectedPerson={selectedPerson}
+            dateRange={dateRange}
+          />
         </div>
         <div className="mt-6 text-center">
           <ExportPDFButton
-            dateRange={dateRange}
+            deliveries={filteredDeliveries}
             selectedPerson={selectedPerson}
-            deliveryPeople={deliveryPeople}
-            deliveries={deliveries}
+            dateRange={dateRange}
           />
         </div>
-      </DialogContent>
-    </Dialog>
+      </ScrollArea>
+    </div>
   );
 }

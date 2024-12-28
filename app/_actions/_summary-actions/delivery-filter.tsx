@@ -11,7 +11,7 @@ import { useState } from "react";
 
 type DeliveryFilterProps = {
   selectedPerson: string;
-  setSelectedPerson: (value: string) => void;
+  setSelectedPerson: (value: { id: string; name: string }) => void;
   dateRange: { from?: Date; to?: Date };
   setDateRange: (range: { from?: Date; to?: Date }) => void;
 };
@@ -23,34 +23,34 @@ const DeliveryFilter: React.FC<DeliveryFilterProps> = ({
 }) => {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   // Função para lidar com a seleção de datas
-  const handleDateSelect = (range: { from: Date; to: Date }) => {
-    setDateRange(range);
-    if (range?.from && range?.to) {
-      // Verificando se ambos os valores estão definidos
-      setIsCalendarOpen(false);
-    }
+  const handleDateSelect = (range: { from?: Date; to?: Date }) => {
+    setDateRange({
+      from: range?.from || dateRange.from,
+      to: range?.to || dateRange.to,
+    });
   };
 
   // Função para lidar com a seleção do entregador
-  const handleSelectCourier = (selectedCourier: { id: string }) => {
-    setSelectedPerson(selectedCourier.id); // Aqui você pode ajustar conforme necessário
+  const handleCourierSelect = (selectedCourier: {
+    id: string;
+    name: string;
+    pricePerPackage: number;
+  }) => {
+    setSelectedPerson({
+      id: selectedCourier.id,
+      name: selectedCourier.name,
+    }); // Passando id e name para o estado
   };
 
   return (
-    <div className="space-y-6">
+    <div className="flex gap-4">
       {/* Filtro de entregador */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Selecionar Entregador:
-        </label>
-        <CourierButtons onSelectCourier={handleSelectCourier} />
+      <div className="mt-2 w-full flex-1">
+        <CourierButtons onSelectCourier={handleCourierSelect} />
       </div>
 
       {/* Filtro de data */}
-      <div>
-        <label className="mb-2 block text-sm font-medium text-gray-700">
-          Selecionar Período:
-        </label>
+      <div className="mt-2 w-full flex-1">
         <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
           <PopoverTrigger asChild>
             <Button variant="outline" className="w-full">

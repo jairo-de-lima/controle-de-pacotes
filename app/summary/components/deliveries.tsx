@@ -15,15 +15,11 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import {
-  CalendarClock,
-  Package,
-  PencilIcon,
-  TrashIcon,
-  User,
-} from "lucide-react";
+import { Package, PencilIcon, SearchIcon, TrashIcon, User } from "lucide-react";
 import { useToast } from "@/app/_hooks/use-toast";
 import { EditDelivery } from "./edit-deliveries";
+import { DeliveryAnalytics } from "@/app/_actions/_summary-actions/dellivery-analytics";
+import { ScrollArea } from "@/app/_components/ui/scroll-area";
 
 type Delivery = {
   courierId: string;
@@ -49,6 +45,7 @@ export function Delivery() {
   const [deliveryPeople, setDeliveryPeople] = useState<DeliveryPerson[]>([]);
   const [isEditing, setIsEditing] = useState(false);
   const [deliveryToEdit, setDeliveryToEdit] = useState<Delivery | null>(null);
+  const [searchDeliveries, setSearchDeliveries] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
@@ -118,6 +115,10 @@ export function Delivery() {
     }
   };
 
+  const openSearchDeliveries = () => {
+    setSearchDeliveries(true);
+  };
+
   return (
     <div className="bg-muted-foreground-foreground mb-4 mt-20 flex w-[80%] flex-col items-center justify-center">
       <div className="mb-4 flex w-full items-center justify-between">
@@ -126,17 +127,25 @@ export function Delivery() {
           Resumo de entregas
         </h1>
         <div>
-          <button
-            className="bg-primary-foreground-foreground hover hover:bg-primary-foreground-foreground-100 rounded-md px-4 py-2 text-white transition duration-300 ease-in-out"
+          <Button
+            variant="link"
             onClick={() => {
-              // Open the dialog Analitycs
-              console.log("Open the dialog Analitycs");
+              openSearchDeliveries();
             }}
           >
-            <CalendarClock size={20} />
-          </button>
+            <SearchIcon size={20} />
+          </Button>
         </div>
       </div>
+
+      {searchDeliveries && (
+        <Dialog open={searchDeliveries} onOpenChange={setSearchDeliveries}>
+          <DialogContent className="rounded-md md:max-w-[80%]">
+            <DialogTitle>Analise de Entregas por periodo</DialogTitle>
+            <DeliveryAnalytics />
+          </DialogContent>
+        </Dialog>
+      )}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {deliveryPeople.map((person) => {
@@ -184,60 +193,62 @@ export function Delivery() {
               Detalhes das Entregas
             </DialogTitle>
           </DialogHeader>
-          <div className="space-y-4">
-            {selectedPersonDeliveries.length > 0 ? (
-              selectedPersonDeliveries.map((delivery) => (
-                <div
-                  key={delivery.id}
-                  className="flex w-full items-center justify-between gap-2 rounded-md border p-4 shadow-sm"
-                >
-                  <div>
-                    <p>
-                      <strong>Data:</strong>{" "}
-                      {new Date(delivery.date).toLocaleDateString()}
-                    </p>
-                    <p>
-                      <strong>Pacotes entregues:</strong> {delivery.packages}
-                    </p>
-                    <p>
-                      <strong>Valor adicional:</strong> R$
-                      {delivery.additionalFee
-                        ? delivery.additionalFee.toFixed(2)
-                        : "0.00"}
-                    </p>
-                    <p>
-                      <strong>Valor total:</strong> R$
-                      {(delivery.totalValue + delivery.additionalFee).toFixed(
-                        2,
-                      )}
-                    </p>
+          <ScrollArea className="h-96">
+            <div className="space-y-4">
+              {selectedPersonDeliveries.length > 0 ? (
+                selectedPersonDeliveries.map((delivery) => (
+                  <div
+                    key={delivery.id}
+                    className="flex w-full items-center justify-between gap-2 rounded-md border p-4 shadow-sm"
+                  >
+                    <div>
+                      <p>
+                        <strong>Data:</strong>{" "}
+                        {new Date(delivery.date).toLocaleDateString()}
+                      </p>
+                      <p>
+                        <strong>Pacotes entregues:</strong> {delivery.packages}
+                      </p>
+                      <p>
+                        <strong>Valor adicional:</strong> R$
+                        {delivery.additionalFee
+                          ? delivery.additionalFee.toFixed(2)
+                          : "0.00"}
+                      </p>
+                      <p>
+                        <strong>Valor total:</strong> R$
+                        {(delivery.totalValue + delivery.additionalFee).toFixed(
+                          2,
+                        )}
+                      </p>
+                    </div>
+                    <div className="mr-0 flex">
+                      <Button
+                        variant="destructive"
+                        className="mr-2"
+                        onClick={() => handleDelete(delivery.id)}
+                      >
+                        <TrashIcon size={18} />
+                      </Button>
+                      <Dialog open={isEditing} onOpenChange={setIsEditing}>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className="mr-2"
+                            onClick={() => handleEdit(delivery.id)}
+                          >
+                            <PencilIcon size={18} />
+                          </Button>
+                        </DialogTrigger>
+                      </Dialog>
+                    </div>
                   </div>
-                  <div className="mr-0 flex">
-                    <Button
-                      variant="destructive"
-                      className="mr-2"
-                      onClick={() => handleDelete(delivery.id)}
-                    >
-                      <TrashIcon size={18} />
-                    </Button>
-                    <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                      <DialogTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="mr-2"
-                          onClick={() => handleEdit(delivery.id)}
-                        >
-                          <PencilIcon size={18} />
-                        </Button>
-                      </DialogTrigger>
-                    </Dialog>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p>Não há entregas registradas para este entregador.</p>
-            )}
-          </div>
+                ))
+              ) : (
+                <p>Não há entregas registradas para este entregador.</p>
+              )}
+            </div>
+          </ScrollArea>
         </DialogContent>
       </Dialog>
 

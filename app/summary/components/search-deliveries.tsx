@@ -29,7 +29,7 @@ type Delivery = {
   // Outros campos relevantes da entrega
 };
 
-const Analytics = () => {
+const SearchDeliveries = () => {
   const [selectedPerson, setSelectedPerson] = useState<string>("all");
   const [dateRange, setDateRange] = useState<{ from?: Date; to?: Date }>({});
   const [couriers, setCouriers] = useState<Courier[]>([]);
@@ -89,35 +89,34 @@ const Analytics = () => {
     fetchDeliveries();
   }, [fetchDeliveries]);
   return (
-    <div className="min-w-screen flex min-h-screen flex-col items-center justify-center p-4">
-      <Card>
-        <CardHeader className="flex items-center justify-between">
-          <CardTitle className="mb-4 text-xl font-bold">
-            Resumo de Entregas
-          </CardTitle>
-          {/* Ícone de calendário como botão */}
-          <Dialog>
-            <DialogTrigger asChild>
-              <button
-                onClick={() => setIsDialogOpen(true)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <CalendarClock size={24} />
-              </button>
-            </DialogTrigger>{" "}
-          </Dialog>
-        </CardHeader>
-        <CardContent>
-          <DeliveryFilter
-            selectedPerson={selectedPerson}
-            setSelectedPerson={setSelectedPerson}
-            dateRange={dateRange}
-            setDateRange={setDateRange}
-            couriers={couriers}
-          />
-          <DeliverySummary deliveries={deliveries} />
-        </CardContent>
-      </Card>
+    <Card>
+      <CardHeader className="flex items-center justify-between">
+        <CardTitle className="mb-4 text-xl font-bold">
+          Resumo de Entregas
+        </CardTitle>
+        {/* Ícone de calendário como botão */}
+        <Dialog>
+          <DialogTrigger asChild>
+            <button
+              onClick={() => setIsDialogOpen(true)}
+              className="text-gray-500 hover:text-gray-700"
+            >
+              <CalendarClock size={24} />
+            </button>
+          </DialogTrigger>{" "}
+        </Dialog>
+      </CardHeader>
+
+      <CardContent>
+        <DeliveryFilter
+          selectedPerson={selectedPerson}
+          setSelectedPerson={setSelectedPerson}
+          dateRange={dateRange}
+          setDateRange={setDateRange}
+          couriers={couriers}
+        />
+        <DeliverySummary deliveries={deliveries} />
+      </CardContent>
 
       {/* Dialog do DeliveryAnalytics */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -128,8 +127,8 @@ const Analytics = () => {
           <DeliveryAnalytics />
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 };
 
-export default Analytics;
+export default SearchDeliveries;
