@@ -9,6 +9,7 @@ interface CreateDeliveriesProps {
   additionalFee: number;
   totalValue: number;
   companyId: string;
+  paid?: boolean;
 }
 
 export async function CreateDeliveries({
@@ -18,6 +19,7 @@ export async function CreateDeliveries({
   additionalFee,
   totalValue,
   companyId,
+  paid,
 }: CreateDeliveriesProps) {
   if (!courierId) {
     throw new Error("Courier ID is required");
@@ -30,6 +32,7 @@ export async function CreateDeliveries({
       additionalFee,
       totalValue,
       companyId,
+      paid,
     });
     return { success: true, message: "Dados registrados com sucesso!" };
   } catch {

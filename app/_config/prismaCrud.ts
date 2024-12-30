@@ -78,6 +78,7 @@ export const DeliveryCRUD = {
     additionalFee?: number;
     totalValue?: number;
     companyId: string;
+    paid?: boolean;
   }) => {
     return await prisma.delivery.create({ data });
   },
@@ -96,6 +97,7 @@ export const DeliveryCRUD = {
       additionalFee?: number;
       totalValue?: number;
       companyId?: string;
+      paid?: boolean;
     },
   ) => {
     return await prisma.delivery.update({ where: { id }, data });

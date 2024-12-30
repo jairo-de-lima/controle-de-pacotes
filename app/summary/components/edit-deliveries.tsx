@@ -27,6 +27,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { MoneyInput } from "@/app/courier/_components/money-input";
+import { Switch } from "@/app/_components/ui/switch";
 
 // Validação do formulário com Zod
 const deliverySchema = z.object({
@@ -34,6 +35,7 @@ const deliverySchema = z.object({
   packages: z.number().min(1, "Deve haver pelo menos um pacote."),
   additionalFee: z.number(),
   totalValue: z.number(),
+  paid: z.boolean().default(false).optional(),
 });
 
 type DeliveryFormValues = z.infer<typeof deliverySchema>;
@@ -46,6 +48,7 @@ type EditDeliveryProps = {
     packages?: number;
     additionalFee?: number;
     totalValue?: number;
+    paid?: boolean;
   };
   onDeliveryUpdated: () => void; // Função para ser chamada após a atualização
 };
@@ -70,6 +73,7 @@ export function EditDelivery({
       packages: delivery.packages,
       additionalFee: delivery.additionalFee,
       totalValue: delivery.totalValue,
+      paid: delivery.paid,
     },
   });
 
@@ -189,6 +193,18 @@ export function EditDelivery({
               />
             </FormControl>
             <FormMessage />
+          </FormItem>
+
+          <FormItem className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <FormControl className="h-5">
+                <Switch
+                  checked={form.watch("paid")}
+                  onCheckedChange={(checked) => form.setValue("paid", checked)}
+                />
+              </FormControl>
+              <FormLabel>Valor Pago</FormLabel>
+            </div>
           </FormItem>
 
           <Button type="submit">Salvar</Button>

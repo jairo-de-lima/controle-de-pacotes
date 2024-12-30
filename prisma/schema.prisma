@@ -46,8 +46,8 @@ model Delivery {
   packages     Int
   additionalFee Float      @default(0)
   totalValue   Float       @default(0)
+  paid         Boolean     @default(false)
   companyId    String
   company      Company    @relation(fields: [companyId], references: [id])
-
   @@map("deliveries") // Nome opcional para a tabela no banco
 }

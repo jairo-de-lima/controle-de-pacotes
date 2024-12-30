@@ -35,6 +35,7 @@ import AuthGuard from "@/app/_components/AuthGuard";
 import { MoneyInput } from "@/app/courier/_components/money-input";
 import { useToast } from "@/app/_hooks/use-toast";
 import { CreateDeliveries } from "@/app/_actions/_delivery-actions/deliveries-form";
+import { Switch } from "@/app/_components/ui/switch";
 
 const DeliveriesForm = () => {
   const { data: session } = useSession();
@@ -50,6 +51,7 @@ const DeliveriesForm = () => {
       .number()
       .positive("A quantidade de pacotes deve ser maior que zero"),
     additionalFee: z.number(),
+    paid: z.boolean().default(false).optional(),
   });
 
   const form = useForm<z.infer<typeof formSchema>>({
@@ -217,6 +219,24 @@ const DeliveriesForm = () => {
                       />
                     </FormControl>
                     <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="paid"
+                render={({ field }) => (
+                  <FormItem>
+                    <div className="flex items-center gap-2">
+                      <FormControl className="h-5">
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <FormLabel>Valor Pago</FormLabel>
+                    </div>
                   </FormItem>
                 )}
               />

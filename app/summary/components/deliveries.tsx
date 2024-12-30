@@ -29,6 +29,7 @@ type Delivery = {
   totalValue: number;
   additionalFee: number;
   deliveryPersonId: string;
+  paid: boolean;
 };
 
 type DeliveryPerson = {
@@ -56,6 +57,7 @@ export function Delivery() {
 
       setDeliveries(fetchedDeliveries);
       setDeliveryPeople(fetchedPeople);
+      console.log(fetchedDeliveries);
     }
 
     fetchData();
@@ -148,42 +150,50 @@ export function Delivery() {
       )}
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        {deliveryPeople.map((person) => {
-          const personDeliveries = deliveries.filter(
-            (delivery) => delivery.courierId === person.id,
-          );
-          const totalDeliveries = personDeliveries.length;
-          const pricePerPackage = person.pricePerPackage;
-          const totalValue =
-            pricePerPackage *
-              personDeliveries.reduce(
-                (acc, delivery) => acc + delivery.packages,
-                0,
-              ) +
-            personDeliveries.reduce(
-              (acc, delivery) => acc + delivery.additionalFee,
-              0,
+        {deliveryPeople
+          .filter((person) => {
+            // Filtra para incluir somente entregadores com entregas realizadas
+            const personDeliveries = deliveries.filter(
+              (delivery) => delivery.courierId === person.id,
             );
+            return personDeliveries.length > 0; // Verifica se tem entregas
+          })
+          .map((person) => {
+            const personDeliveries = deliveries.filter(
+              (delivery) => delivery.courierId === person.id,
+            );
+            const totalDeliveries = personDeliveries.length;
+            const pricePerPackage = person.pricePerPackage;
+            const totalValue =
+              pricePerPackage *
+                personDeliveries.reduce(
+                  (acc, delivery) => acc + delivery.packages,
+                  0,
+                ) +
+              personDeliveries.reduce(
+                (acc, delivery) => acc + delivery.additionalFee,
+                0,
+              );
 
-          return (
-            <Card
-              key={person.id}
-              className="cursor-pointer shadow-md hover:shadow-lg"
-              onClick={() => handleCardClick(person.id)}
-            >
-              <CardHeader className="border-b p-1">
-                <CardTitle className="flex items-center gap-2 text-base font-semibold uppercase">
-                  <User size={20} />
-                  {person.name}
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-4">
-                <p>Entregas: {totalDeliveries}</p>
-                <p>Total de ganhos: R${totalValue.toFixed(2)}</p>
-              </CardContent>
-            </Card>
-          );
-        })}
+            return (
+              <Card
+                key={person.id}
+                className="cursor-pointer shadow-md hover:shadow-lg"
+                onClick={() => handleCardClick(person.id)}
+              >
+                <CardHeader className="border-b p-1">
+                  <CardTitle className="flex items-center gap-2 text-base font-semibold uppercase">
+                    <User size={20} />
+                    {person.name}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <p>Entregas: {totalDeliveries}</p>
+                  <p>Total de ganhos: R${totalValue.toFixed(2)}</p>
+                </CardContent>
+              </Card>
+            );
+          })}
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -199,7 +209,7 @@ export function Delivery() {
                 selectedPersonDeliveries.map((delivery) => (
                   <div
                     key={delivery.id}
-                    className="flex w-full items-center justify-between gap-2 rounded-md border p-4 shadow-sm"
+                    className={`flex w-full items-center justify-between gap-2 rounded-md border p-4 shadow-sm ${delivery.paid === true ? "bg-muted-foreground" : ""}`}
                   >
                     <div>
                       <p>
@@ -211,9 +221,7 @@ export function Delivery() {
                       </p>
                       <p>
                         <strong>Valor adicional:</strong> R$
-                        {delivery.additionalFee
-                          ? delivery.additionalFee.toFixed(2)
-                          : "0.00"}
+                        {delivery.additionalFee.toFixed(2) || "0.00"}
                       </p>
                       <p>
                         <strong>Valor total:</strong> R$
