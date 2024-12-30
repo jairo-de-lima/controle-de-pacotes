@@ -1,22 +1,18 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Loading from "@/app/loading/Loading";
+import OverviewCard from "./overview-card";
+import EarningsPieChart from "./earnings-pie-chart";
+import TopCouriers from "./top-couriers";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from "recharts";
-
-import Loading from "@/app/loading/Loading";
+import { useSession } from "next-auth/react";
 
 // Tipos para tipar os dados
 interface Courier {
@@ -30,24 +26,11 @@ interface DeliveryStats {
   totalRoutes: number;
   courierEarnings: Array<{
     name: string;
-    value: number;
+    value: number; // Ganhos totais
+    totalRoutes: number; // Total de rotas
+    totalPackages: number; // Total de pacotes entregues
   }>;
 }
-const CustomTooltip = ({ active, payload }) => {
-  if (active && payload && payload.length) {
-    return (
-      <Card className="flex flex-col items-center justify-center bg-transparent p-2">
-        <CardTitle className="text-sm font-extrabold uppercase">
-          {payload[0].payload.name}
-        </CardTitle>
-        <CardContent className="text-sm font-bold">
-          Ganhos: R$ {Number(payload[0].value).toFixed(2)}
-        </CardContent>
-      </Card>
-    );
-  }
-  return null;
-};
 
 export default function Dashboard() {
   const [courierStats, setCourierStats] = useState<DeliveryStats>({
@@ -57,6 +40,7 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { data: session } = useSession();
 
   useEffect(() => {
     const fetchCourierStats = async () => {
@@ -79,21 +63,30 @@ export default function Dashboard() {
         );
         const totalRoutes = deliveriesData.length;
 
-        // Calcular ganhos por entregador
+        // Calcular ganhos, total de rotas e total de pacotes por entregador
         const courierEarnings = couriersData.map((courier: Courier) => {
-          // Filtrar entregas deste entregador e somar o valor total
           const courierDeliveries = deliveriesData.filter(
             (d: { courierId: string }) => d.courierId === courier.id,
           );
+
           const totalValue = courierDeliveries.reduce(
             (sum: number, delivery: { totalValue: number }) =>
               sum + delivery.totalValue,
             0,
           );
 
+          const totalRoutes = courierDeliveries.length;
+          const totalPackages = courierDeliveries.reduce(
+            (sum: number, delivery: { packages: number }) =>
+              sum + delivery.packages,
+            0,
+          );
+
           return {
             name: courier.name,
             value: totalValue,
+            totalRoutes,
+            totalPackages,
           };
         });
 
@@ -114,9 +107,6 @@ export default function Dashboard() {
     fetchCourierStats();
   }, []);
 
-  // Cores para o gráfico de pizza
-  const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
-
   if (isLoading) {
     return (
       <div className="flex h-full items-center justify-center p-4">
@@ -130,75 +120,29 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-2">
-      {/* Cartão de Estatísticas Gerais */}
-      <Card>
+    <div className="mt-16 flex w-full flex-col items-center justify-center">
+      <Card className="flex flex-col items-center">
         <CardHeader>
-          <CardTitle>Visão Geral de Entregas</CardTitle>
+          <CardTitle className="text-base">
+            Bem-vindo ao Dashboard,{" "}
+            <span className="uppercase">{session?.user?.name} </span>!
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            <p className="text-sm">
-              Total de Pacotes Entregues:
-              <span className="ml-2 font-bold">
-                {courierStats.totalPackages}
-              </span>
-            </p>
-            <p className="text-sm">
-              Total de Rotas Efetuadas:
-              <span className="ml-2 font-bold">{courierStats.totalRoutes}</span>
-            </p>
-          </div>
+          <CardDescription className="text-sm font-bold">
+            Bem-vindo ao sistema de gerenciamento de estoque.
+          </CardDescription>
         </CardContent>
       </Card>
+      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-3">
+        <OverviewCard
+          totalPackages={courierStats.totalPackages}
+          totalRoutes={courierStats.totalRoutes}
+        />
 
-      {/* Gráfico de Pizza de Ganhos por Entregador */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Ganhos por Entregador</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {courierStats.courierEarnings.length > 0 ? (
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={courierStats.courierEarnings}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                  // label={({ name, percent }) =>
-                  //   `${name} ${(percent * 100).toFixed(0)}%`
-                  // }
-                >
-                  {courierStats.courierEarnings.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={<CustomTooltip />}
-                  cursor={{ fill: "rgba(0, 0, 0, 0.1)" }}
-                />
-
-                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          ) : (
-            <p className="text-center text-gray-500">
-              Sem dados de ganhos disponíveis
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        <EarningsPieChart courierEarnings={courierStats.courierEarnings} />
+        <TopCouriers courierEarnings={courierStats.courierEarnings} />
+      </div>
     </div>
   );
 }

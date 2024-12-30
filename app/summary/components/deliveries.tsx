@@ -185,7 +185,7 @@ export function Delivery() {
 
       {deliveryToEdit && isEditing && (
         <Dialog open={isEditing} onOpenChange={setIsEditing}>
-          <DialogContent>
+          <DialogContent className="w-[90%] rounded-md">
             <DialogTitle>Editar Entrega</DialogTitle>
             <EditDelivery
               delivery={{

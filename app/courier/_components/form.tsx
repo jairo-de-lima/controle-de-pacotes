@@ -130,7 +130,7 @@ const CourierForm = () => {
 
   return (
     <AuthGuard>
-      <div className="min-w-screen flex min-h-screen items-center justify-center">
+      <div className="bg-muted-foreground-foreground flex w-[90%] flex-col items-center justify-center md:w-[80%]">
         <Card className="w-[95%] md:w-1/2">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -143,7 +143,7 @@ const CourierForm = () => {
                   <UserRoundPen size={20} />
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="flex w-[90%] flex-col items-center justify-center rounded-md">
                 <DialogTitle>Editar um entregador</DialogTitle>
                 <CourierButtons
                   onSelectCourier={(courier: Courier) => {

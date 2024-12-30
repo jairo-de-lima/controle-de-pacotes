@@ -102,7 +102,7 @@ const DeliveriesForm = () => {
 
   return (
     <AuthGuard>
-      <Card className="bg-muted-foreground-foreground flex w-[80%] flex-col items-center justify-center">
+      <Card className="bg-muted-foreground-foreground flex w-[90%] flex-col items-center justify-center md:w-[80%]">
         <CardTitle className="mt-5 flex items-center gap-2">
           <Package size={18} />
           Registro de Entrega
