@@ -6,20 +6,15 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/app/_components/ui/card";
-import { Package, PencilIcon, SearchIcon, TrashIcon, User } from "lucide-react";
+import { Package, SearchIcon } from "lucide-react";
 import { useToast } from "@/app/_hooks/use-toast";
-import { EditDelivery } from "./edit-deliveries";
-import { DeliveryAnalytics } from "@/app/_actions/_summary-actions/dellivery-analytics";
+import { DeliveriesDetail } from "./details-delivery";
+import { SearchDeliveriesDialog } from "./search-deliveries-dialog";
+import { DeliveryPersonCard } from "./delivery-person-card";
 import { ScrollArea } from "@/app/_components/ui/scroll-area";
+import { EditDelivery } from "./edit-deliveries";
 
 type Delivery = {
   courierId: string;
@@ -128,44 +123,28 @@ export function Delivery() {
           <Package size={20} />
           Resumo de entregas
         </h1>
-        <div>
-          <Button
-            variant="link"
-            onClick={() => {
-              openSearchDeliveries();
-            }}
-          >
-            <SearchIcon size={20} />
-          </Button>
-        </div>
+        <Button variant="link" onClick={openSearchDeliveries}>
+          <SearchIcon size={20} />
+        </Button>
       </div>
 
-      {searchDeliveries && (
-        <Dialog open={searchDeliveries} onOpenChange={setSearchDeliveries}>
-          <DialogContent className="rounded-md md:max-w-[80%]">
-            <DialogTitle>Analise de Entregas por periodo</DialogTitle>
-            <DeliveryAnalytics />
-          </DialogContent>
-        </Dialog>
-      )}
+      <SearchDeliveriesDialog
+        isOpen={searchDeliveries}
+        onClose={() => setSearchDeliveries(false)}
+      />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {deliveryPeople
-          .filter((person) => {
-            // Filtra para incluir somente entregadores com entregas realizadas
-            const personDeliveries = deliveries.filter(
-              (delivery) => delivery.courierId === person.id,
-            );
-            return personDeliveries.length > 0; // Verifica se tem entregas
-          })
+          .filter((person) =>
+            deliveries.some((delivery) => delivery.courierId === person.id),
+          )
           .map((person) => {
             const personDeliveries = deliveries.filter(
               (delivery) => delivery.courierId === person.id,
             );
             const totalDeliveries = personDeliveries.length;
-            const pricePerPackage = person.pricePerPackage;
             const totalValue =
-              pricePerPackage *
+              person.pricePerPackage *
                 personDeliveries.reduce(
                   (acc, delivery) => acc + delivery.packages,
                   0,
@@ -176,22 +155,13 @@ export function Delivery() {
               );
 
             return (
-              <Card
+              <DeliveryPersonCard
                 key={person.id}
-                className="cursor-pointer shadow-md hover:shadow-lg"
+                person={person}
+                totalDeliveries={totalDeliveries}
+                totalValue={totalValue}
                 onClick={() => handleCardClick(person.id)}
-              >
-                <CardHeader className="border-b p-1">
-                  <CardTitle className="flex items-center gap-2 text-base font-semibold uppercase">
-                    <User size={20} />
-                    {person.name}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-4">
-                  <p>Entregas: {totalDeliveries}</p>
-                  <p>Total de ganhos: R${totalValue.toFixed(2)}</p>
-                </CardContent>
-              </Card>
+              />
             );
           })}
       </div>
@@ -204,58 +174,11 @@ export function Delivery() {
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-96">
-            <div className="space-y-4">
-              {selectedPersonDeliveries.length > 0 ? (
-                selectedPersonDeliveries.map((delivery) => (
-                  <div
-                    key={delivery.id}
-                    className={`flex w-full items-center justify-between gap-2 rounded-md border p-4 shadow-sm ${delivery.paid === true ? "bg-muted-foreground" : ""}`}
-                  >
-                    <div>
-                      <p>
-                        <strong>Data:</strong>{" "}
-                        {new Date(delivery.date).toLocaleDateString()}
-                      </p>
-                      <p>
-                        <strong>Pacotes entregues:</strong> {delivery.packages}
-                      </p>
-                      <p>
-                        <strong>Valor adicional:</strong> R$
-                        {delivery.additionalFee.toFixed(2) || "0.00"}
-                      </p>
-                      <p>
-                        <strong>Valor total:</strong> R$
-                        {(delivery.totalValue + delivery.additionalFee).toFixed(
-                          2,
-                        )}
-                      </p>
-                    </div>
-                    <div className="mr-0 flex">
-                      <Button
-                        variant="destructive"
-                        className="mr-2"
-                        onClick={() => handleDelete(delivery.id)}
-                      >
-                        <TrashIcon size={18} />
-                      </Button>
-                      <Dialog open={isEditing} onOpenChange={setIsEditing}>
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="mr-2"
-                            onClick={() => handleEdit(delivery.id)}
-                          >
-                            <PencilIcon size={18} />
-                          </Button>
-                        </DialogTrigger>
-                      </Dialog>
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p>Não há entregas registradas para este entregador.</p>
-              )}
-            </div>
+            <DeliveriesDetail
+              deliveries={selectedPersonDeliveries}
+              onDelete={handleDelete}
+              onEdit={handleEdit}
+            />
           </ScrollArea>
         </DialogContent>
       </Dialog>
