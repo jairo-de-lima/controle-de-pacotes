@@ -132,7 +132,6 @@ export function Delivery() {
     });
     setFilteredDeliveries(filtered);
   };
-  console.log(filteredDeliveries);
 
   const handleFilterDeliveriesPaid = async () => {
     if (filteredDeliveries && filteredDeliveries.length > 0) {
@@ -154,7 +153,11 @@ export function Delivery() {
         // Aguarda todas as requisições serem concluídas
         await Promise.all(promises);
 
-        console.log("Todas as entregas foram marcadas como pagas!");
+        toast({
+          title: "Sucesso",
+          description: "As entregas foram marcadas como pagas.",
+          duration: 2000,
+        });
 
         // Atualiza a lista localmente
         const updatedDeliveries = await fetch("/api/deliveries").then((res) =>
@@ -162,10 +165,18 @@ export function Delivery() {
         );
         setDeliveries(updatedDeliveries);
       } catch (error) {
-        console.error("Erro ao marcar entregas como pagas:", error);
+        toast({
+          title: "Entrega deletada com sucesso!",
+          description: `Erro ao marcar entregas como pagas: ${error}`,
+          duration: 2000,
+        });
       }
     } else {
-      console.log("Nenhuma entrega selecionada para marcar como paga.");
+      toast({
+        title: "Ouve um Erro",
+        description: "Nenhuma entrega selecionada para marcar como paga.",
+        duration: 2000,
+      });
     }
   };
 

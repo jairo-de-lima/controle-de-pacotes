@@ -2,10 +2,20 @@ import { NextResponse } from "next/server";
 import { CourierCRUD } from "@/app/_config/prismaCrud";
 import { revalidatePath } from "next/cache";
 
+interface CourierParams {
+  id: string;
+}
+
+interface CourierData {
+  // Defina a estrutura esperada dos dados do entregador
+  name: string;
+  // Adicione outros campos conforme necessário
+}
+
 export async function GET(
   req: Request,
-  { params }: { params: { id: string } },
-) {
+  { params }: { params: CourierParams },
+): Promise<NextResponse> {
   try {
     const courier = await CourierCRUD.readById(params.id);
     if (!courier) {
@@ -25,9 +35,9 @@ export async function GET(
 
 export async function PUT(
   req: Request,
-  { params }: { params: { id: string } },
-) {
-  const data = await req.json();
+  { params }: { params: CourierParams },
+): Promise<NextResponse> {
+  const data: CourierData = await req.json(); // Defina o tipo dos dados recebidos
   try {
     const updatedCourier = await CourierCRUD.update(params.id, data);
 
@@ -45,8 +55,8 @@ export async function PUT(
 
 export async function DELETE(
   req: Request,
-  { params }: { params: { id: string } },
-) {
+  { params }: { params: CourierParams },
+): Promise<NextResponse> {
   try {
     await CourierCRUD.delete(params.id);
 
