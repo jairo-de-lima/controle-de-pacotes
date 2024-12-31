@@ -8,13 +8,14 @@ import {
   DialogTitle,
 } from "@/app/_components/ui/dialog";
 import { Button } from "@/app/_components/ui/button";
-import { Package, SearchIcon } from "lucide-react";
+import { Calendar, Package, SearchIcon } from "lucide-react";
 import { useToast } from "@/app/_hooks/use-toast";
 import { DeliveriesDetail } from "./details-delivery";
 import { SearchDeliveriesDialog } from "./search-deliveries-dialog";
 import { DeliveryPersonCard } from "./delivery-person-card";
 import { ScrollArea } from "@/app/_components/ui/scroll-area";
 import { EditDelivery } from "./edit-deliveries";
+import { DeliveryFilter } from "./filter-deliveries";
 
 type Delivery = {
   courierId: string;
@@ -42,6 +43,8 @@ export function Delivery() {
   const [isEditing, setIsEditing] = useState(false);
   const [deliveryToEdit, setDeliveryToEdit] = useState<Delivery | null>(null);
   const [searchDeliveries, setSearchDeliveries] = useState(false);
+  const [isFilterOpen, setIsFilterOpen] = useState(false);
+  const [filteredDeliveries, setFilteredDeliveries] = useState<Delivery[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -57,6 +60,9 @@ export function Delivery() {
 
     fetchData();
   }, []);
+  useEffect(() => {
+    setFilteredDeliveries(deliveries); // Inicialmente, exibir todas as entregas
+  }, [deliveries]);
 
   const handleDeliveryUpdated = async () => {
     setIsEditing(false);
@@ -116,6 +122,17 @@ export function Delivery() {
     setSearchDeliveries(true);
   };
 
+  const handleFilter = (filter: { startDate: string; endDate: string }) => {
+    const { startDate, endDate } = filter;
+    const filtered = deliveries.filter((delivery) => {
+      const deliveryDate = new Date(delivery.date);
+      return (
+        deliveryDate >= new Date(startDate) && deliveryDate <= new Date(endDate)
+      );
+    });
+    setFilteredDeliveries(filtered);
+  };
+
   return (
     <div className="bg-muted-foreground-foreground mb-4 mt-20 flex w-[80%] flex-col items-center justify-center">
       <div className="mb-4 flex w-full items-center justify-between">
@@ -123,9 +140,19 @@ export function Delivery() {
           <Package size={20} />
           Resumo de entregas
         </h1>
-        <Button variant="link" onClick={openSearchDeliveries}>
-          <SearchIcon size={20} />
-        </Button>
+        <div className="flex gap-1">
+          <Button
+            variant="link"
+            onClick={() => {
+              setIsFilterOpen(true);
+            }}
+          >
+            <Calendar size={20} />
+          </Button>
+          <Button variant="link" onClick={openSearchDeliveries}>
+            <SearchIcon size={20} />
+          </Button>
+        </div>
       </div>
 
       <SearchDeliveriesDialog
@@ -133,13 +160,21 @@ export function Delivery() {
         onClose={() => setSearchDeliveries(false)}
       />
 
+      <DeliveryFilter
+        isOpen={isFilterOpen}
+        onClose={() => setIsFilterOpen(false)}
+        onFilter={handleFilter}
+      />
+
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {deliveryPeople
           .filter((person) =>
-            deliveries.some((delivery) => delivery.courierId === person.id),
+            filteredDeliveries.some(
+              (delivery) => delivery.courierId === person.id,
+            ),
           )
           .map((person) => {
-            const personDeliveries = deliveries.filter(
+            const personDeliveries = filteredDeliveries.filter(
               (delivery) => delivery.courierId === person.id,
             );
             const totalDeliveries = personDeliveries.length;
