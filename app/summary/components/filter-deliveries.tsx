@@ -13,23 +13,37 @@ import { Calendar } from "@/app/_components/ui/calendar";
 import { addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
+import { Delivery } from "@prisma/client";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/_components/ui/alert-dialog";
 
 type DeliveryFilterProps = {
   onFilter: (filter: { startDate: string; endDate: string }) => void;
   isOpen: boolean;
   onClose: () => void;
+  onPaid: (filteredDeliveries: Delivery[]) => Promise<void>;
 };
 
 export function DeliveryFilter({
   onFilter,
   isOpen,
   onClose,
+  onPaid,
 }: DeliveryFilterProps) {
   const today = new Date();
   const [date, setDate] = useState<DateRange | undefined>({
     from: today,
     to: today,
   });
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleSelect = (selectedDate: DateRange | undefined) => {
     setDate(selectedDate);
@@ -37,7 +51,6 @@ export function DeliveryFilter({
 
   const handleApplyFilter = () => {
     if (date?.from && date?.to) {
-      // Ajusta as datas para incluir o dia todo
       const startDate = new Date(date.from);
       startDate.setHours(0, 0, 0, 0);
 
@@ -88,6 +101,11 @@ export function DeliveryFilter({
     onClose();
   };
 
+  const handleConfirmOnPaid = async () => {
+    setIsDialogOpen(false);
+    await onPaid([]);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="w-[90%] max-w-md rounded-md">
@@ -131,16 +149,43 @@ export function DeliveryFilter({
             </Button>
           </div>
 
-          <Button
-            variant="default"
-            onClick={handleApplyFilter}
-            className="w-full"
-            disabled={!date?.from || !date?.to}
-          >
-            Aplicar Filtro
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="default"
+              onClick={handleApplyFilter}
+              className="flex-1"
+              disabled={!date?.from || !date?.to}
+            >
+              Aplicar Filtro
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(true)}
+              className="flex-1"
+            >
+              Marcar como Pago
+            </Button>
+          </div>
         </div>
       </DialogContent>
+
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        <AlertDialogContent className="w-[90%]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar Pagamento</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza de que deseja marcar as entregas como pagas? Esta ação
+              não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmOnPaid}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

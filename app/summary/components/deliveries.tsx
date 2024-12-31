@@ -132,6 +132,42 @@ export function Delivery() {
     });
     setFilteredDeliveries(filtered);
   };
+  console.log(filteredDeliveries);
+
+  const handleFilterDeliveriesPaid = async () => {
+    if (filteredDeliveries && filteredDeliveries.length > 0) {
+      try {
+        // Itera sobre o array e marca cada entrega como "paid"
+        const promises = filteredDeliveries.map(async (delivery) => {
+          return await fetch(`/api/deliveries/${delivery.id}`, {
+            // Passe o ID no caminho
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              paid: true, // Atualize apenas a propriedade desejada
+            }),
+          });
+        });
+
+        // Aguarda todas as requisições serem concluídas
+        await Promise.all(promises);
+
+        console.log("Todas as entregas foram marcadas como pagas!");
+
+        // Atualiza a lista localmente
+        const updatedDeliveries = await fetch("/api/deliveries").then((res) =>
+          res.json(),
+        );
+        setDeliveries(updatedDeliveries);
+      } catch (error) {
+        console.error("Erro ao marcar entregas como pagas:", error);
+      }
+    } else {
+      console.log("Nenhuma entrega selecionada para marcar como paga.");
+    }
+  };
 
   return (
     <div className="bg-muted-foreground-foreground mb-4 mt-20 flex w-[80%] flex-col items-center justify-center">
@@ -164,6 +200,7 @@ export function Delivery() {
         isOpen={isFilterOpen}
         onClose={() => setIsFilterOpen(false)}
         onFilter={handleFilter}
+        onPaid={handleFilterDeliveriesPaid}
       />
 
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
