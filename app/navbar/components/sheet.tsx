@@ -30,7 +30,7 @@ const SheetBar = () => {
 
         <SheetClose asChild>
           <Button className="justify-start gap-2" variant="ghost" asChild>
-            <Link href="/addperson">
+            <Link href="/courier">
               <BookUser size={20} />
               Entregador
             </Link>
