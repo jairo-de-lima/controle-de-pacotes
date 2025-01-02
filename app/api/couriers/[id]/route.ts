@@ -1,23 +1,28 @@
+import { type NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { CourierCRUD } from "@/app/_config/prismaCrud";
 import { revalidatePath } from "next/cache";
 
-interface CourierParams {
-  id: string;
-}
-
 interface CourierData {
-  // Defina a estrutura esperada dos dados do entregador
+  id: string;
   name: string;
-  // Adicione outros campos conforme necessário
+  pricePerPackage: number;
+  companyId: string;
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: CourierParams },
-): Promise<NextResponse> {
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
+// Usando const e arrow functions para os handlers
+export const GET = async (
+  _req: NextRequest,
+  context: Context,
+): Promise<NextResponse> => {
   try {
-    const courier = await CourierCRUD.readById(params.id);
+    const courier = await CourierCRUD.readById(context.params.id);
     if (!courier) {
       return NextResponse.json(
         { error: "Entregador não encontrado." },
@@ -31,19 +36,16 @@ export async function GET(
       { status: 500 },
     );
   }
-}
+};
 
-export async function PUT(
-  req: Request,
-  { params }: { params: CourierParams },
-): Promise<NextResponse> {
-  const data: CourierData = await req.json(); // Defina o tipo dos dados recebidos
+export const PUT = async (
+  req: NextRequest,
+  context: Context,
+): Promise<NextResponse> => {
+  const data: CourierData = await req.json();
   try {
-    const updatedCourier = await CourierCRUD.update(params.id, data);
-
-    // Revalidar o cache antes de retornar a resposta
+    const updatedCourier = await CourierCRUD.update(context.params.id, data);
     revalidatePath("/courier");
-
     return NextResponse.json(updatedCourier);
   } catch {
     return NextResponse.json(
@@ -51,18 +53,15 @@ export async function PUT(
       { status: 500 },
     );
   }
-}
+};
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: CourierParams },
-): Promise<NextResponse> {
+export const DELETE = async (
+  _req: NextRequest,
+  context: Context,
+): Promise<NextResponse> => {
   try {
-    await CourierCRUD.delete(params.id);
-
-    // Revalidar o cache antes de retornar a resposta
+    await CourierCRUD.delete(context.params.id);
     revalidatePath("/courier");
-
     return NextResponse.json({ message: "Entregador deletado com sucesso." });
   } catch {
     return NextResponse.json(
@@ -70,4 +69,4 @@ export async function DELETE(
       { status: 500 },
     );
   }
-}
+};

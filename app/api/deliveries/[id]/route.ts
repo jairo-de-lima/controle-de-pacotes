@@ -1,63 +1,76 @@
+import { type NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { DeliveryCRUD } from "@/app/_config/prismaCrud";
 import { revalidatePath } from "next/cache";
 
-export async function GET(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+interface DeliveryData {
+  id: string;
+  courierId: string;
+  date: Date;
+  packages: number;
+  additionalFee: number;
+  totalValue: number;
+  paid: boolean;
+  companyId: string;
+}
+
+type Context = {
+  params: {
+    id: string;
+  };
+};
+
+// Usando const e arrow functions para os handlers
+export const GET = async (
+  _req: NextRequest,
+  context: Context,
+): Promise<NextResponse> => {
   try {
-    const courier = await DeliveryCRUD.readById(params.id);
-    if (!courier) {
+    const delivery = await DeliveryCRUD.readById(context.params.id);
+    if (!delivery) {
       return NextResponse.json(
-        { error: "Entrega nao encontrada" },
+        { error: "Entrega não encontrada." },
         { status: 404 },
       );
     }
-    return NextResponse.json(courier);
+    return NextResponse.json(delivery);
   } catch {
     return NextResponse.json(
-      { error: "Erro ao buscar entregas." },
+      { error: "Erro ao buscar entrega." },
       { status: 500 },
     );
   }
-}
+};
 
-export async function PUT(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
-  const data = await req.json();
+export const PUT = async (
+  req: NextRequest,
+  context: Context,
+): Promise<NextResponse> => {
+  const data: DeliveryData = await req.json();
   try {
-    const updatedCourier = await DeliveryCRUD.update(params.id, data);
-
-    // Revalidar o cache antes de retornar a resposta
+    const updatedDelivery = await DeliveryCRUD.update(context.params.id, data);
     revalidatePath("/summary");
-
-    return NextResponse.json(updatedCourier);
+    return NextResponse.json(updatedDelivery);
   } catch {
     return NextResponse.json(
       { error: "Erro ao atualizar entrega." },
       { status: 500 },
     );
   }
-}
+};
 
-export async function DELETE(
-  req: Request,
-  { params }: { params: { id: string } },
-) {
+export const DELETE = async (
+  _req: NextRequest,
+  context: Context,
+): Promise<NextResponse> => {
   try {
-    await DeliveryCRUD.delete(params.id);
-
-    // Revalidar o cache antes de retornar a resposta
+    await DeliveryCRUD.delete(context.params.id);
     revalidatePath("/summary");
-
-    return NextResponse.json({ message: "Entega deletado com sucesso." });
+    return NextResponse.json({ message: "Entrega deletada com sucesso." });
   } catch {
     return NextResponse.json(
-      { error: "Erro ao deletar Entrega." },
+      { error: "Erro ao deletar entrega." },
       { status: 500 },
     );
   }
-}
+};

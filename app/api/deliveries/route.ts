@@ -1,16 +1,16 @@
-import { prisma } from "@/app/_lib/prisma";
+import { type NextRequest } from "next/server";
 import { NextResponse } from "next/server";
+import { prisma } from "@/app/_lib/prisma";
 
-export async function GET(request: Request) {
+export const GET = async (_req: NextRequest): Promise<NextResponse> => {
   try {
-    const { searchParams } = new URL(request.url);
+    const { searchParams } = new URL(_req.url);
 
     const courierId = searchParams.get("courierId");
     const start = searchParams.get("start");
     const end = searchParams.get("end");
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const where: any = {};
+    const where: Record<string, unknown> = {};
 
     if (courierId) {
       where.courierId = courierId;
@@ -44,4 +44,29 @@ export async function GET(request: Request) {
       { status: 500 },
     );
   }
-}
+};
+
+export const POST = async (req: NextRequest): Promise<NextResponse> => {
+  try {
+    const data = await req.json();
+
+    const delivery = await prisma.delivery.create({
+      data: {
+        courierId: data.courierId,
+        date: data.date,
+        packages: data.packages,
+        totalValue: data.totalValue,
+        additionalFee: data.additionalFee,
+        paid: data.paid,
+      },
+    });
+
+    return NextResponse.json(delivery);
+  } catch (error) {
+    console.error("Erro ao criar entrega:", error);
+    return NextResponse.json(
+      { error: "Erro ao criar entrega." },
+      { status: 500 },
+    );
+  }
+};
