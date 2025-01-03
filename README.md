@@ -34,3 +34,45 @@ Se você tem interesse em colaborar ou quer saber mais sobre este projeto, entre
 
 - **GitHub**: [github.com/jairo-de-lima](https://github.com/jairo-de-lima)
 - **LinkedIn**: [linkedin.com/in/jairo-de-lima](https://linkedin.com/in/jairo-de-lima)
+
+---
+---
+---
+README translated into English
+
+# Package Control
+
+## About the Project
+
+**Package Control** is an application developed for **logistics companies** to manage packages delivered by drivers or motorcycle couriers. The tool is designed to provide efficient and secure control of deliveries, with robust CRUD functionalities and access verification.
+
+---
+
+## Technologies Used
+
+This project was developed using the following technologies:
+
+- **Next.js** - React framework for web applications.
+- **Tailwind CSS** - Library for fast and responsive styling.
+- **TypeScript** - JavaScript superset that adds static typing.
+- **PostgreSQL** - Relational database used via **NeonDB Console**.
+- **shadcn** - Accessible and styled UI components.
+- **JWT (JSON Web Token)** - For secure user authentication and access control.
+
+---
+
+## Features
+
+- **Full CRUD**: Allows creating, reading, updating, and deleting package records.
+- **JWT Authentication**: Ensures secure access with unique tokens for each user.
+- **Advanced Security**: Verification to ensure company data is not accessible by another company.
+- **Responsive Interface**: Optimized for use on both mobile and desktop devices.
+- **Centralized Control**: Ensures that all deliveries are securely and organized registered.
+
+---
+
+If you're interested in collaborating or want to learn more about this project, feel free to contact me:
+
+- **GitHub**: [github.com/jairo-de-lima](https://github.com/jairo-de-lima)
+- **LinkedIn**: [linkedin.com/in/jairo-de-lima](https://linkedin.com/in/jairo-de-lima)
+
