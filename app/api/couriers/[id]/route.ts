@@ -2,6 +2,7 @@ import { type NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { CourierCRUD } from "@/app/_config/prismaCrud";
 import { revalidatePath } from "next/cache";
+import { getToken } from "next-auth/jwt";
 
 interface CourierData {
   id: string;
@@ -16,12 +17,35 @@ type Context = {
   };
 };
 
-// Usando const e arrow functions para os handlers
+// Middleware para verificar se o courier pertence à companyId do usuário autenticado
+const verifyCompanyOwnership = async (
+  req: NextRequest,
+  courierId: string,
+): Promise<boolean> => {
+  const token = await getToken({ req });
+  if (!token?.companyId) {
+    return false;
+  }
+
+  const courier = await CourierCRUD.readById(courierId);
+  if (!courier || courier.companyId !== token.companyId) {
+    return false;
+  }
+
+  return true;
+};
+
+// GET Handler
 export const GET = async (
-  _req: NextRequest,
+  req: NextRequest,
   context: Context,
 ): Promise<NextResponse> => {
   try {
+    const hasAccess = await verifyCompanyOwnership(req, context.params.id);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    }
+
     const courier = await CourierCRUD.readById(context.params.id);
     if (!courier) {
       return NextResponse.json(
@@ -29,6 +53,7 @@ export const GET = async (
         { status: 404 },
       );
     }
+
     return NextResponse.json(courier);
   } catch {
     return NextResponse.json(
@@ -38,12 +63,18 @@ export const GET = async (
   }
 };
 
+// PUT Handler
 export const PUT = async (
   req: NextRequest,
   context: Context,
 ): Promise<NextResponse> => {
   const data: CourierData = await req.json();
   try {
+    const hasAccess = await verifyCompanyOwnership(req, context.params.id);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    }
+
     const updatedCourier = await CourierCRUD.update(context.params.id, data);
     revalidatePath("/courier");
     return NextResponse.json(updatedCourier);
@@ -55,11 +86,17 @@ export const PUT = async (
   }
 };
 
+// DELETE Handler
 export const DELETE = async (
-  _req: NextRequest,
+  req: NextRequest,
   context: Context,
 ): Promise<NextResponse> => {
   try {
+    const hasAccess = await verifyCompanyOwnership(req, context.params.id);
+    if (!hasAccess) {
+      return NextResponse.json({ error: "Acesso negado." }, { status: 403 });
+    }
+
     await CourierCRUD.delete(context.params.id);
     revalidatePath("/courier");
     return NextResponse.json({ message: "Entregador deletado com sucesso." });

@@ -23,9 +23,9 @@ export const authOptions = {
           throw new Error("Usuário não encontrado.");
         }
 
-        const isValidPassword = bcrypt.compareSync(
+        const isValidPassword = bcrypt.compare(
           credentials.password,
-          user.password
+          user.password,
         );
 
         if (!isValidPassword) {
@@ -46,7 +46,7 @@ export const authOptions = {
         token.id = user.id;
         token.email = user.email;
         token.name = user.name;
-        token.companyId= user.id
+        token.companyId = user.id;
       }
       return token;
     },
@@ -55,7 +55,7 @@ export const authOptions = {
         id: token.id,
         email: token.email,
         name: token.name,
-        companyId: token.companyId
+        companyId: token.companyId,
       };
       return session;
     },
