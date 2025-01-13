@@ -36,7 +36,9 @@ type DeliveryPerson = {
 
 export function Delivery() {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedPerson, setSelectedPerson] = useState<string | null>(null);
+  const [selectedPerson, setSelectedPerson] = useState<DeliveryPerson | null>(
+    null,
+  );
   const { toast } = useToast();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [deliveryPeople, setDeliveryPeople] = useState<DeliveryPerson[]>([]);
@@ -73,13 +75,13 @@ export function Delivery() {
     setDeliveries(await updatedDeliveries);
   };
 
-  const handleCardClick = (personId: string) => {
-    setSelectedPerson(personId);
+  const handleCardClick = (person: DeliveryPerson) => {
+    setSelectedPerson(person);
     setIsOpen(true);
   };
 
   const selectedPersonDeliveries = selectedPerson
-    ? deliveries.filter((delivery) => delivery.courierId === selectedPerson)
+    ? deliveries.filter((delivery) => delivery.courierId === selectedPerson.id)
     : [];
 
   const handleDelete = async (id: string) => {
@@ -243,7 +245,7 @@ export function Delivery() {
                 person={person}
                 totalDeliveries={totalDeliveries}
                 totalValue={totalValue}
-                onClick={() => handleCardClick(person.id)}
+                onClick={() => handleCardClick(person)} // Passar o objeto completo
               />
             );
           })}
@@ -257,10 +259,12 @@ export function Delivery() {
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-96">
+            {/* Passar o preço por pacote */}
             <DeliveriesDetail
               deliveries={selectedPersonDeliveries}
               onDelete={handleDelete}
               onEdit={handleEdit}
+              pricePerPackage={selectedPerson?.pricePerPackage}
             />
           </ScrollArea>
         </DialogContent>

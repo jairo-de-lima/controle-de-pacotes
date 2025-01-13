@@ -6,12 +6,16 @@ import { PencilIcon, Save, TrashIcon } from "lucide-react";
 
 type DeliveriesDetailProps = {
   deliveries: Delivery[];
+  selectedPerson: string | null; // Adicionado para referência
+  pricePerPackage: number; // Adicionado para cálculo do total
   onDelete: (id: string) => void;
   onEdit: (id: string) => void;
 };
 
 export const DeliveriesDetail: React.FC<DeliveriesDetailProps> = ({
   deliveries,
+  selectedPerson,
+  pricePerPackage,
   onDelete,
   onEdit,
 }) => {
@@ -52,6 +56,7 @@ export const DeliveriesDetail: React.FC<DeliveriesDetailProps> = ({
       ),
     });
   };
+
   return (
     <div className="space-y-4">
       {deliveries.length > 0 ? (
@@ -76,7 +81,10 @@ export const DeliveriesDetail: React.FC<DeliveriesDetailProps> = ({
               </p>
               <p>
                 <strong>Valor total:</strong> R$
-                {(delivery.totalValue + delivery.additionalFee).toFixed(2)}
+                {(
+                  delivery.packages * pricePerPackage +
+                  delivery.additionalFee
+                ).toFixed(2)}
               </p>
             </div>
             <div className="mr-0 flex">
