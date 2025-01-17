@@ -81,7 +81,9 @@ export function Delivery() {
   };
 
   const selectedPersonDeliveries = selectedPerson
-    ? deliveries.filter((delivery) => delivery.courierId === selectedPerson.id)
+    ? filteredDeliveries.filter(
+        (delivery) => delivery.courierId === selectedPerson.id,
+      )
     : [];
 
   const handleDelete = async (id: string) => {
@@ -182,6 +184,37 @@ export function Delivery() {
     }
   };
 
+  const getCurrentQuinzena = () => {
+    const today = new Date();
+    const currentDay = today.getDate();
+    const currentMonth = today.getMonth() + 1; // Mês começa em 0
+    const currentYear = today.getFullYear();
+
+    if (currentDay <= 15) {
+      return {
+        startDate: new Date(currentYear, currentMonth - 1, 1),
+        endDate: new Date(currentYear, currentMonth - 1, 15),
+      };
+    } else {
+      return {
+        startDate: new Date(currentYear, currentMonth - 1, 16),
+        endDate: new Date(currentYear, currentMonth, 0), // Último dia do mês
+      };
+    }
+  };
+
+  // Atualiza os deliveries filtrados com base na quinzena atual
+  useEffect(() => {
+    const { startDate, endDate } = getCurrentQuinzena();
+
+    const filtered = deliveries.filter((delivery) => {
+      const deliveryDate = new Date(delivery.date);
+      return deliveryDate >= startDate && deliveryDate <= endDate;
+    });
+
+    setFilteredDeliveries(filtered);
+  }, [deliveries]);
+
   return (
     <div className="bg-muted-foreground-foreground mb-4 mt-20 flex w-[80%] flex-col items-center justify-center">
       <div className="mb-4 flex w-full items-center justify-between">
@@ -255,7 +288,7 @@ export function Delivery() {
         <DialogContent className="w-[90%] rounded-md">
           <DialogHeader>
             <DialogTitle className="flex w-full justify-center gap-2">
-              Detalhes das Entregas
+              Entregas de {selectedPerson?.name}
             </DialogTitle>
           </DialogHeader>
           <ScrollArea className="h-96">
