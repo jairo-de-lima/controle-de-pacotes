@@ -4,14 +4,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/app/_components/ui/card";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Tooltip,
-  Legend,
-} from "recharts";
+import { ScrollArea } from "@/app/_components/ui/scroll-area";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
+import { TooltipProps } from "recharts";
 
 interface EarningsPieChartProps {
   courierEarnings:
@@ -23,8 +18,6 @@ interface EarningsPieChartProps {
 }
 
 const COLORS = ["#0088FE", "#00C49F", "#FFBB28", "#FF8042", "#8884D8"];
-
-import { TooltipProps } from "recharts";
 
 const CustomTooltip = ({ active, payload }: TooltipProps<number, string>) => {
   if (active && payload && payload.length) {
@@ -88,9 +81,28 @@ export default function EarningsPieChart({
               content={<CustomTooltip />}
               cursor={{ fill: "rgba(0, 0, 0, 0.1)" }}
             />
-            <Legend layout="horizontal" verticalAlign="bottom" align="center" />
           </PieChart>
         </ResponsiveContainer>
+
+        {/* Legenda com scroll abaixo do gráfico */}
+        <div className="max-h-[80px] overflow-y-auto [&::-webkit-scrollbar]:hidden">
+          <ScrollArea className="scroll-area-custom">
+            <div className="space-y-1">
+              {courierEarnings.map((entry, index) => (
+                <div
+                  key={entry.name}
+                  className="flex items-center gap-2 text-sm"
+                >
+                  <div
+                    className="h-3 w-3 rounded-full"
+                    style={{ backgroundColor: COLORS[index % COLORS.length] }}
+                  />
+                  <span className="truncate">{entry.name}</span>
+                </div>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </CardContent>
     </Card>
   );
