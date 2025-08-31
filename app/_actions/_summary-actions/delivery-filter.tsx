@@ -1,10 +1,12 @@
 import { Button } from "@/app/_components/ui/button";
 import { Calendar } from "@/app/_components/ui/calendar";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/app/_components/ui/popover";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/app/_components/ui/dialog";
 import CourierButtons from "@/app/delivery/_components/searchCourier";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
@@ -21,16 +23,17 @@ const DeliveryFilter: React.FC<DeliveryFilterProps> = ({
   dateRange,
   setDateRange,
 }) => {
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  // Função para lidar com a seleção de datas
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+
+  // Seleção de datas
   const handleDateSelect = (range: { from?: Date; to?: Date }) => {
     setDateRange({
-      from: range?.from || dateRange.from,
-      to: range?.to || dateRange.to,
+      from: range?.from,
+      to: range?.to,
     });
   };
 
-  // Função para lidar com a seleção do entregador
+  // Seleção do entregador
   const handleCourierSelect = (selectedCourier: {
     id: string;
     name: string;
@@ -39,7 +42,7 @@ const DeliveryFilter: React.FC<DeliveryFilterProps> = ({
     setSelectedPerson({
       id: selectedCourier.id,
       name: selectedCourier.name,
-    }); // Passando id e name para o estado
+    });
   };
 
   return (
@@ -51,34 +54,44 @@ const DeliveryFilter: React.FC<DeliveryFilterProps> = ({
 
       {/* Filtro de data */}
       <div className="mt-2 w-full flex-1">
-        <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-          <PopoverTrigger asChild>
+        <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <DialogTrigger asChild>
             <Button variant="outline" className="w-full">
               <CalendarIcon className="mr-2" />
               {dateRange?.from && dateRange?.to
                 ? `${dateRange.from.toLocaleDateString()} - ${dateRange.to.toLocaleDateString()}`
                 : "Selecione o período"}
             </Button>
-          </PopoverTrigger>
-          <PopoverContent>
-            <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={handleDateSelect}
-              disabled={(date) =>
-                date > new Date() || date < new Date("1990-01-01")
-              }
-              initialFocus
-            />
-
-            {/* <Calendar
-              mode="range"
-              selected={dateRange}
-              onSelect={handleDateSelect}
-              className="rounded-md"
-            /> */}
-          </PopoverContent>
-        </Popover>
+          </DialogTrigger>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle>Selecionar Período</DialogTitle>
+            </DialogHeader>
+            <div className="flex justify-center">
+              <Calendar
+                mode="range"
+                selected={dateRange}
+                onSelect={handleDateSelect}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1990-01-01")
+                }
+                initialFocus
+              />
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  setDateRange({ from: undefined, to: undefined });
+                  setIsDialogOpen(false);
+                }}
+              >
+                Limpar
+              </Button>
+              <Button onClick={() => setIsDialogOpen(false)}>Confirmar</Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
