@@ -13,12 +13,26 @@ import {
   CardTitle,
 } from "@/app/_components/ui/card";
 import { useSession } from "next-auth/react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/_components/ui/select";
 
-// Tipos para tipar os dados
 interface Courier {
   id: string;
   name: string;
   pricePerPackage: number;
+}
+
+interface Delivery {
+  id: string;
+  courierId: string;
+  date: string;
+  packages: number;
+  totalValue: number;
 }
 
 interface DeliveryStats {
@@ -26,9 +40,9 @@ interface DeliveryStats {
   totalRoutes: number;
   courierEarnings: Array<{
     name: string;
-    value: number; // Ganhos totais
-    totalRoutes: number; // Total de rotas
-    totalPackages: number; // Total de pacotes entregues
+    value: number;
+    totalRoutes: number;
+    totalPackages: number;
   }>;
 }
 
@@ -40,6 +54,12 @@ export default function Dashboard() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Filtro de mês/ano
+  const now = new Date();
+  const [selectedMonth, setSelectedMonth] = useState(now.getMonth()); // 0 = Jan
+  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
+
   const { data: session } = useSession();
 
   useEffect(() => {
@@ -47,38 +67,42 @@ export default function Dashboard() {
       try {
         setIsLoading(true);
 
-        // Buscar dados de entregas
+        // Buscar dados
         const deliveriesResponse = await fetch("/api/deliveries");
-        const deliveriesData = await deliveriesResponse.json();
+        const deliveriesData: Delivery[] = await deliveriesResponse.json();
 
-        // Buscar entregadores
         const couriersResponse = await fetch("/api/couriers");
-        const couriersData = await couriersResponse.json();
+        const couriersData: Courier[] = await couriersResponse.json();
+
+        // 🔑 Filtrar entregas pelo mês/ano selecionados
+        const filteredDeliveries = deliveriesData.filter((delivery) => {
+          const deliveryDate = new Date(delivery.date.replace(" ", "T"));
+          return (
+            deliveryDate.getMonth() === selectedMonth &&
+            deliveryDate.getFullYear() === selectedYear
+          );
+        });
 
         // Calcular estatísticas
-        const totalPackages = deliveriesData.reduce(
-          (sum: number, delivery: { packages: number }) =>
-            sum + delivery.packages,
+        const totalPackages = filteredDeliveries.reduce(
+          (sum, delivery) => sum + delivery.packages,
           0,
         );
-        const totalRoutes = deliveriesData.length;
+        const totalRoutes = filteredDeliveries.length;
 
-        // Calcular ganhos, total de rotas e total de pacotes por entregador
-        const courierEarnings = couriersData.map((courier: Courier) => {
-          const courierDeliveries = deliveriesData.filter(
-            (d: { courierId: string }) => d.courierId === courier.id,
+        const courierEarnings = couriersData.map((courier) => {
+          const courierDeliveries = filteredDeliveries.filter(
+            (d) => d.courierId === courier.id,
           );
 
           const totalValue = courierDeliveries.reduce(
-            (sum: number, delivery: { totalValue: number }) =>
-              sum + delivery.totalValue,
+            (sum, delivery) => sum + delivery.totalValue,
             0,
           );
 
           const totalRoutes = courierDeliveries.length;
           const totalPackages = courierDeliveries.reduce(
-            (sum: number, delivery: { packages: number }) =>
-              sum + delivery.packages,
+            (sum, delivery) => sum + delivery.packages,
             0,
           );
 
@@ -105,7 +129,7 @@ export default function Dashboard() {
     };
 
     fetchCourierStats();
-  }, []);
+  }, [selectedMonth, selectedYear]); // 👈 Recalcular quando trocar mês/ano
 
   if (isLoading) {
     return (
@@ -119,27 +143,80 @@ export default function Dashboard() {
     return <div className="p-4 text-red-500">{error}</div>;
   }
 
+  // Lista de meses
+  const months = [
+    "Janeiro",
+    "Fevereiro",
+    "Março",
+    "Abril",
+    "Maio",
+    "Junho",
+    "Julho",
+    "Agosto",
+    "Setembro",
+    "Outubro",
+    "Novembro",
+    "Dezembro",
+  ];
+
   return (
     <div className="mt-16 flex w-full flex-col items-center justify-center">
-      <Card className="flex flex-col items-center">
-        <CardHeader>
-          <CardTitle className="text-base">
+      <Card className="flex w-[95%] max-w-3xl flex-col items-center">
+        <CardHeader className="w-full">
+          <CardTitle className="flex items-center justify-center text-base">
             Bem-vindo ao Dashboard,{" "}
-            <span className="uppercase">{session?.user?.name} </span>!
+            <span className="uppercase">{session?.user?.name}</span>!
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <CardDescription className="text-sm font-bold">
-            Bem-vindo ao sistema de gerenciamento de estoque.
+          {/* 🔽 Seletor de mês/ano */}
+          <div className="flex gap-2">
+            <Select
+              value={String(selectedMonth)}
+              onValueChange={(value) => setSelectedMonth(Number(value))}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {months.map((m, i) => (
+                  <SelectItem key={i} value={String(i)}>
+                    {m}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select
+              value={String(selectedYear)}
+              onValueChange={(value) => setSelectedYear(Number(value))}
+            >
+              <SelectTrigger className="w-[100px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 5 }).map((_, i) => {
+                  const year = now.getFullYear() - i;
+                  return (
+                    <SelectItem key={year} value={String(year)}>
+                      {year}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+          <CardDescription className="flex items-center justify-center text-sm font-bold">
+            Estatísticas de {months[selectedMonth]} / {selectedYear}
           </CardDescription>
         </CardContent>
       </Card>
-      <div className="grid grid-cols-1 gap-4 p-4 md:grid-cols-3">
+
+      <div className="grid w-full max-w-5xl grid-cols-1 gap-4 p-4 md:grid-cols-3">
         <OverviewCard
           totalPackages={courierStats.totalPackages}
           totalRoutes={courierStats.totalRoutes}
         />
-
         <EarningsPieChart courierEarnings={courierStats.courierEarnings} />
         <TopCouriers courierEarnings={courierStats.courierEarnings} />
       </div>
